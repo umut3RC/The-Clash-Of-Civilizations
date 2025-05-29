@@ -1,9 +1,9 @@
 const cacheName = "Umter Studios-the_clash_of_civilizations-0.1";
 const contentToCache = [
-    "Build/export-the_clash_of_civilizations.loader.js",
-    "Build/export-the_clash_of_civilizations.framework.js",
-    "Build/export-the_clash_of_civilizations.data",
-    "Build/export-the_clash_of_civilizations.wasm",
+    "Build/Export-The-Clash-Of-Civilizations.loader.js",
+    "Build/Export-The-Clash-Of-Civilizations.framework.js",
+    "Build/Export-The-Clash-Of-Civilizations.data",
+    "Build/Export-The-Clash-Of-Civilizations.wasm",
     "TemplateData/style.css"
 
 ];
