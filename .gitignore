@@ -73,3 +73,11 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Özel / ücretli / hassas asset klasörleri
+Assets/Packets/
+Assets/Resources/
+Assets/Audio/
+
+# Photon gizli ayar dosyası
+Assets/Photon/PhotonUnityNetworking/Resources/PhotonServerSettings.asset
