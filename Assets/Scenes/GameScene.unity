@@ -2022,7 +2022,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 8f34fbb647fd77f46a9652c090f3045e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2372,6 +2372,7 @@ MonoBehaviour:
   raycastLayer:
     serializedVersion: 2
     m_Bits: 64
+  testArmyPrefab: {fileID: 1689846606485552554, guid: d939e11bd42596e4fa2195f7c936e3e7, type: 3}
   totalCoins: 0
   totalCoinText: {fileID: 68839737}
 --- !u!1 &1563495150
@@ -2731,13 +2732,13 @@ MonoBehaviour:
       - m_Target: {fileID: 1528381113}
         m_TargetAssemblyTypeName: PlayerScript, Assembly-CSharp
         m_MethodName: SelectArmy
-        m_Mode: 1
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: HeavySwordman
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1783642862
