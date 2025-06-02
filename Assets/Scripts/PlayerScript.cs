@@ -2,11 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-public class PlayerScript : MonoBehaviour
+using Photon.Pun;
+using Photon.Realtime;
+public class PlayerScript : MonoBehaviourPunCallbacks
 {
 	public GameObject spawnTargetVisulazer;
 	public LayerMask raycastLayer;
 	public GameObject testArmyPrefab;
+	public GameObject myCanvas;
+	public GameObject myCamera;
+	public GameObject myCastle;
 	[SerializeField] int totalCoins = 0;
 	[SerializeField] GameObject totalCoinText;
 
@@ -15,11 +20,17 @@ public class PlayerScript : MonoBehaviour
 	bool selectedSpawn = false;
 	string lastTargetArmyName = "";
 	GameObject lastTargetArmy;
+	bool isReady = false;
+	string armyLayer = "Army1";
 
 	void Start()
 	{
 		SetCoin(100);
 		spawnTargetVisulazer.SetActive(false);
+		if (PhotonNetwork.IsConnectedAndReady)
+		{
+			PrepareMine();
+		}
 	}
 
 	void Update()
@@ -32,7 +43,7 @@ public class PlayerScript : MonoBehaviour
 			coinTimer = 0f;
 		}
 
-		if (selectedSpawn)
+		if (isReady && selectedSpawn)
 		{
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -69,11 +80,14 @@ public class PlayerScript : MonoBehaviour
 		spawnTargetVisulazer.SetActive(true);
 		if (selectedSpawn && lastTargetArmyName != null)
 		{
-			lastTargetArmy = Instantiate(testArmyPrefab);
+			// lastTargetArmy = Instantiate(testArmyPrefab);
+			lastTargetArmy = PhotonNetwork.Instantiate("HeavySwordman", Vector3.zero, Quaternion.identity);
+			lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
+
 			int _amount = lastTargetArmy.GetComponent<HeavySwordmanScript>().GetAmount();
 			if (_amount >= totalCoins)
 			{
-				Destroy(lastTargetArmy);
+				PhotonNetwork.Destroy(lastTargetArmy);
 				selectedSpawn = false;
 				spawnTargetVisulazer.SetActive(false);
 			}
@@ -85,5 +99,22 @@ public class PlayerScript : MonoBehaviour
 		selectedSpawn = false;
 		spawnTargetVisulazer.SetActive(false);
 		lastTargetArmy = null;
+	}
+	private void PrepareMine()
+	{
+		if (photonView.IsMine)
+		{
+			myCamera.SetActive(true);
+			myCanvas.SetActive(true);
+		}
+		if (!PhotonNetwork.IsMasterClient)
+		{
+			transform.rotation *= Quaternion.Euler(0, 180f, 0);
+			transform.localPosition = new Vector3(28, 0, 0);
+
+			raycastLayer = LayerMask.GetMask("Ground 2");
+			armyLayer = "Army2";
+		}
+		isReady = true;
 	}
 }
