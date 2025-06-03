@@ -11,9 +11,11 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public GameObject testArmyPrefab;
 	public GameObject myCanvas;
 	public GameObject myCamera;
-	public GameObject myCastle;
-	[SerializeField] int totalCoins = 0;
-	[SerializeField] GameObject totalCoinText;
+	// public GameObject myCastle;
+	public GameObject totalCoinText;
+	public Transform[] myBuildings;
+	public Transform[] enemyBuildings;
+	[SerializeField] private int totalCoins = 0;
 
 	private float coinTimer = 0f;
 
@@ -22,6 +24,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	GameObject lastTargetArmy;
 	bool isReady = false;
 	string armyLayer = "Army1";
+	GameRoomConnectionManager gameManager;
 
 	void Start()
 	{
@@ -67,6 +70,11 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		totalCoins++;
 		totalCoinText.GetComponent<TextMeshProUGUI>().text = totalCoins.ToString();
 	}
+	public void DecreaseCoin(int _amount)
+	{
+		totalCoins -= _amount;
+		totalCoinText.GetComponent<TextMeshProUGUI>().text = totalCoins.ToString();
+	}
 
 	private void SetCoin(int c)
 	{
@@ -82,14 +90,22 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		{
 			// lastTargetArmy = Instantiate(testArmyPrefab);
 			lastTargetArmy = PhotonNetwork.Instantiate("HeavySwordman", Vector3.zero, Quaternion.identity);
-			lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
 
-			int _amount = lastTargetArmy.GetComponent<HeavySwordmanScript>().GetAmount();
+			int _amount = lastTargetArmy.GetComponent<ArmyScript>().GetAmount();
 			if (_amount >= totalCoins)
 			{
 				PhotonNetwork.Destroy(lastTargetArmy);
 				selectedSpawn = false;
 				spawnTargetVisulazer.SetActive(false);
+			}
+			else
+			{
+				ArmyScript _target = lastTargetArmy.GetComponent<ArmyScript>();
+				lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
+				lastTargetArmy.tag = armyLayer;
+				_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
+				_target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
+				DecreaseCoin(_amount);
 			}
 		}
 	}
@@ -98,6 +114,8 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	{
 		selectedSpawn = false;
 		spawnTargetVisulazer.SetActive(false);
+		lastTargetArmy.GetComponent<ArmyScript>().StartArmy();
+		lastTargetArmy.GetComponent<ArmyScript>().SetEnemyBuildings(enemyBuildings);
 		lastTargetArmy = null;
 	}
 	private void PrepareMine()
@@ -116,5 +134,32 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			armyLayer = "Army2";
 		}
 		isReady = true;
+	}
+	public Transform[] GetMyBuildings()
+	{
+		return (myBuildings);
+	}
+	public void SetGameManager(GameRoomConnectionManager manager)
+	{
+		gameManager = manager;
+
+		// ViewID ile buildings'i kayıt ettir
+		photonView.ViewID.ToString(); // sadece tetikleyici
+		gameManager.photonView.RPC("RegisterPlayerBuildings", RpcTarget.AllBuffered, photonView.ViewID);
+
+		// enemyBuildings'i belirle
+		SetEnemyBuildings();
+	}
+
+	void SetEnemyBuildings()
+	{
+		if (PhotonNetwork.IsMasterClient)
+		{
+			enemyBuildings = gameManager.otherBuildings; // Diğer oyuncunun binaları
+		}
+		else
+		{
+			enemyBuildings = gameManager.clientBuildings; // MasterClient'ın binaları
+		}
 	}
 }

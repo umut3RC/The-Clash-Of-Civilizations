@@ -57,4 +57,6 @@ public class MainMenuManager : MonoBehaviour
 		if (PhotonNetwork.PlayerList.Length > 0 && PhotonNetwork.IsMasterClient)
 			startGameButton.GetComponent<Button>().interactable = true;
 	}
+
+
 }

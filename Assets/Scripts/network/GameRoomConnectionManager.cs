@@ -8,6 +8,8 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 {
 	public Transform spawnPoint;
 	public string prefabName = "player room manager prefab";
+	public Transform[] clientBuildings;
+	public Transform[] otherBuildings;
 
 	void Start()
 	{
@@ -49,15 +51,18 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	void SpawnAndSetParent()
 	{
-
 		if (spawnPoint == null)
 		{
 			Debug.LogError("spawnPoint atanmamış!");
 			return;
 		}
 		GameObject playerObj = PhotonNetwork.Instantiate(prefabName, spawnPoint.position, Quaternion.identity);
+
+		playerObj.GetComponent<PlayerScript>().SetGameManager(this);
+
 		photonView.RPC("SetParentForObject", RpcTarget.AllBuffered, playerObj.GetComponent<PhotonView>().ViewID);
 	}
+
 
 	[PunRPC]
 	void SetParentForObject(int viewID)
@@ -66,6 +71,35 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		if (targetView != null)
 		{
 			targetView.transform.SetParent(spawnPoint);
+		}
+	}
+	public Transform[] GetEnemyBuildings(bool isClient)
+	{
+		if (isClient)
+		{
+			return (otherBuildings);
+		}
+		else
+		{
+			return (clientBuildings);
+		}
+	}
+	[PunRPC]
+	public void RegisterPlayerBuildings(int viewID)
+	{
+		PhotonView view = PhotonView.Find(viewID);
+		if (view == null) return;
+
+		PlayerScript player = view.GetComponent<PlayerScript>();
+		if (player == null) return;
+
+		if (view.IsMine)
+		{
+			clientBuildings = player.GetMyBuildings();
+		}
+		else
+		{
+			otherBuildings = player.GetMyBuildings();
 		}
 	}
 }
