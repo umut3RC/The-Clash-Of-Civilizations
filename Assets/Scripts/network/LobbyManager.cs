@@ -20,16 +20,22 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	void Start()
 	{
 		PhotonNetwork.ConnectUsingSettings();
+		menuManager.PrepareLoadStatus();
 	}
 
 	public override void OnConnectedToMaster()
 	{
-		PhotonNetwork.JoinLobby();
+		TypedLobby customLobby = new TypedLobby("default", LobbyType.Default);
+		PhotonNetwork.JoinLobby(customLobby);
+		// PhotonNetwork.JoinLobby();
+		menuManager.PrepareLoadStatus();
 	}
 	public override void OnJoinedLobby()
 	{
 		base.OnJoinedLobby();
+		Debug.Log("Lobiye girildi: " + PhotonNetwork.CurrentLobby.Name);
 		menuManager.StartPanels();
+		menuManager.PrepareLoadStatus();
 	}
 
 	public override void OnRoomListUpdate(List<RoomInfo> roomList)
@@ -38,7 +44,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 		UpdateLobbyList();
 	}
 
-	void UpdateLobbyList()
+	public void UpdateLobbyList()
 	{
 		lobbyListText.text = "";
 		foreach (var room in availableRooms)
@@ -52,13 +58,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 		{
 			RoomOptions roomOptions = new RoomOptions() { MaxPlayers = 2 };
 			PhotonNetwork.CreateRoom(roomNameInput.text, roomOptions, TypedLobby.Default);
-			menuManager.EnterRoom();
+			menuManager.ClosePanels();
 		}
 	}
 	public void JoinRoom()
 	{
 		PhotonNetwork.JoinRoom(joinRoomNameInput.text);
-		menuManager.EnterRoom();
+		menuManager.ClosePanels();
 	}
 	public override void OnPlayerEnteredRoom(Player newPlayer)
 	{
@@ -81,5 +87,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	public override void OnJoinedRoom()
 	{
 		UpdatePlayerList();
+		menuManager.EnterRoom();
 	}
 }

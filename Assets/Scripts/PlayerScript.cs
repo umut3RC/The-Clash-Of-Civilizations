@@ -101,12 +101,22 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			else
 			{
 				ArmyScript _target = lastTargetArmy.GetComponent<ArmyScript>();
-				lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
-				lastTargetArmy.tag = armyLayer;
+
+				lastTargetArmy.GetComponent<PhotonView>().RPC("RPC_SetLayerAndTag", RpcTarget.AllBuffered, armyLayer);
+
 				_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
 				_target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
 				DecreaseCoin(_amount);
 			}
+			// else
+			// {
+			// 	ArmyScript _target = lastTargetArmy.GetComponent<ArmyScript>();
+			// 	lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
+			// 	lastTargetArmy.tag = armyLayer;
+			// 	_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
+			// 	_target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
+			// 	DecreaseCoin(_amount);
+			// }
 		}
 	}
 
@@ -114,8 +124,12 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	{
 		selectedSpawn = false;
 		spawnTargetVisulazer.SetActive(false);
-		lastTargetArmy.GetComponent<ArmyScript>().StartArmy();
-		lastTargetArmy.GetComponent<ArmyScript>().SetEnemyBuildings(enemyBuildings);
+
+		ArmyScript armyScript = lastTargetArmy.GetComponent<ArmyScript>();
+
+		armyScript.GetComponent<PhotonView>().RPC("RPC_StartArmy", RpcTarget.AllBuffered);
+		armyScript.SetEnemyBuildings(enemyBuildings);
+
 		lastTargetArmy = null;
 	}
 	private void PrepareMine()

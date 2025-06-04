@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class ArmyScript : MonoBehaviour
+public class ArmyScript : MonoBehaviourPunCallbacks
 {
 	public int totalHealt = 25;
 	public int damage = 5;
@@ -60,6 +61,7 @@ public class ArmyScript : MonoBehaviour
 
 	private void OnTriggerEnter(Collider other)
 	{
+		Debug.Log(other.transform.root.gameObject.name);
 		if (other.transform.root.gameObject.tag == enemyTag)
 		{
 			target = other.gameObject.transform;
@@ -69,13 +71,27 @@ public class ArmyScript : MonoBehaviour
 	{
 		canMove = sts;
 	}
-	public void StartArmy()
+	// public void StartArmy()
+	// {
+	// 	collidersParent.SetActive(true);
+	// 	SetMove(true);
+	// }
+
+	public void SetEnemyTag(string t)
+	{
+		enemyTag = t;
+	}
+
+	[PunRPC]
+	public void RPC_StartArmy()
 	{
 		collidersParent.SetActive(true);
 		SetMove(true);
 	}
-	public void SetEnemyTag(string t)
+	[PunRPC]
+	public void RPC_SetLayerAndTag(string layerName)
 	{
-		enemyTag = t;
+		gameObject.layer = LayerMask.NameToLayer(layerName);
+		gameObject.tag = layerName;
 	}
 }

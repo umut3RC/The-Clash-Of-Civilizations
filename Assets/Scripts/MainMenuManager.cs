@@ -8,22 +8,34 @@ public class MainMenuManager : MonoBehaviour
 {
 	public LobbyManager lobyManager;
 	public GameObject userNamePanel;
+	public GameObject loadingPanel;
 	public TMP_InputField userNameInput;
 	public GameObject menuPanel;
 	public GameObject roomPanel;
 	public GameObject startGameButton;
+	float loadValue = 3f;
+	public Image loadImage;
 
 	void Start()
 	{
-		userNamePanel.SetActive(false);
-		menuPanel.SetActive(false);
-		roomPanel.SetActive(false);
+		ClosePanels();
+		loadingPanel.SetActive(true);
+		PrepareLoadStatus();
 	}
+
+	public void PrepareLoadStatus()
+	{
+		// loadingPanel.SetActive(true);
+		loadImage.fillAmount = (3f - loadValue) / 3;
+		loadValue--;
+	}
+
 	public void StartPanels()
 	{
 		userNamePanel.SetActive(true);
 		menuPanel.SetActive(false);
 		roomPanel.SetActive(false);
+		loadingPanel.SetActive(false);
 	}
 	public void EnterMainMenu()
 	{
@@ -57,6 +69,12 @@ public class MainMenuManager : MonoBehaviour
 		if (PhotonNetwork.PlayerList.Length > 0 && PhotonNetwork.IsMasterClient)
 			startGameButton.GetComponent<Button>().interactable = true;
 	}
-
+	public void ClosePanels()
+	{
+		userNamePanel.SetActive(false);
+		menuPanel.SetActive(false);
+		roomPanel.SetActive(false);
+		loadingPanel.SetActive(false);
+	}
 
 }
