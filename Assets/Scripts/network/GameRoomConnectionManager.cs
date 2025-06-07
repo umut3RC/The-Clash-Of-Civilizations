@@ -58,7 +58,22 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		}
 		GameObject playerObj = PhotonNetwork.Instantiate(prefabName, spawnPoint.position, Quaternion.identity);
 
-		playerObj.GetComponent<PlayerScript>().SetGameManager(this);
+		// PhotonView üzerinden sahiplik kontrolü yap
+		PhotonView pv = playerObj.GetComponent<PhotonView>();
+
+		if (pv.IsMine)
+		{
+			PlayerScript ps = playerObj.GetComponent<PlayerScript>();
+			ps.enabled = true;
+			ps.SetGameManager(this);
+			// playerObj.GetComponent<PlayerScript>().SetGameManager(this);
+		}
+		else
+		{
+			// İstersen diğer oyuncuların PlayerScript'ini tamamen kapat
+			playerObj.GetComponent<PlayerScript>().enabled = false;
+		}
+
 
 		photonView.RPC("SetParentForObject", RpcTarget.AllBuffered, playerObj.GetComponent<PhotonView>().ViewID);
 	}
@@ -100,6 +115,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		else
 		{
 			otherBuildings = player.GetMyBuildings();
+			Debug.Log("Other here");
 		}
 	}
 }

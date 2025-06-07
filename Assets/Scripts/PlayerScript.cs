@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.UIElements;
 public class PlayerScript : MonoBehaviourPunCallbacks
 {
 	public GameObject spawnTargetVisulazer;
@@ -88,8 +89,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		spawnTargetVisulazer.SetActive(true);
 		if (selectedSpawn && lastTargetArmyName != null)
 		{
-			// lastTargetArmy = Instantiate(testArmyPrefab);
-			lastTargetArmy = PhotonNetwork.Instantiate("HeavySwordman", Vector3.zero, Quaternion.identity);
+			lastTargetArmy = PhotonNetwork.Instantiate(targetArmy, Vector3.zero, Quaternion.identity);
 
 			int _amount = lastTargetArmy.GetComponent<ArmyScript>().GetAmount();
 			if (_amount >= totalCoins)
@@ -105,18 +105,9 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 				lastTargetArmy.GetComponent<PhotonView>().RPC("RPC_SetLayerAndTag", RpcTarget.AllBuffered, armyLayer);
 
 				_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
-				_target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
+				// _target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
 				DecreaseCoin(_amount);
 			}
-			// else
-			// {
-			// 	ArmyScript _target = lastTargetArmy.GetComponent<ArmyScript>();
-			// 	lastTargetArmy.layer = LayerMask.NameToLayer(armyLayer);
-			// 	lastTargetArmy.tag = armyLayer;
-			// 	_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
-			// 	_target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
-			// 	DecreaseCoin(_amount);
-			// }
 		}
 	}
 
@@ -128,7 +119,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		ArmyScript armyScript = lastTargetArmy.GetComponent<ArmyScript>();
 
 		armyScript.GetComponent<PhotonView>().RPC("RPC_StartArmy", RpcTarget.AllBuffered);
-		armyScript.SetEnemyBuildings(enemyBuildings);
+		// armyScript.SetEnemyBuildings(enemyBuildings);
 
 		lastTargetArmy = null;
 	}
@@ -153,6 +144,24 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	{
 		return (myBuildings);
 	}
+	[PunRPC]
+	public void RPC_RequestEnemyBuildings(int armyViewID)
+	{
+		PhotonView armyView = PhotonView.Find(armyViewID);
+		if (armyView != null)
+		{
+			Transform[] buildings = GetMyBuildings();
+			int[] buildingIDs = new int[buildings.Length];
+			for (int i = 0; i < buildings.Length; i++)
+			{
+				PhotonView buildingView = buildings[i].GetComponent<PhotonView>();
+				buildingIDs[i] = buildingView.ViewID;
+			}
+
+			armyView.RPC("RPC_SetEnemyBuildings", armyView.Owner, buildingIDs);
+		}
+	}
+
 	public void SetGameManager(GameRoomConnectionManager manager)
 	{
 		gameManager = manager;
