@@ -12,24 +12,44 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public GameObject testArmyPrefab;
 	public GameObject myCanvas;
 	public GameObject myCamera;
-	// public GameObject myCastle;
-	public GameObject totalCoinText;
+	GameObject myVillageCamera;
+	public GameObject myVillageCamera_origin;
+	public GameObject myVillageCamera_other;
+	public GameObject villageGround;
+	public GameObject[] battleStuff;
+	public GameObject[] villageStuff;
+	public TextMeshProUGUI[] panelInfoTexts;//username hp coin
 	public Transform[] myBuildings;
 	public Transform[] enemyBuildings;
+	public GameObject[] myVillage;
 	[SerializeField] private int totalCoins = 0;
-
 	private float coinTimer = 0f;
-
 	bool selectedSpawn = false;
 	string lastTargetArmyName = "";
 	GameObject lastTargetArmy;
 	bool isReady = false;
 	string armyLayer = "Army1";
 	GameRoomConnectionManager gameManager;
+	int health;
 
 	void Start()
 	{
+		if (!photonView.IsMine)
+		{
+			return;
+		}
 		SetCoin(100);
+		SetHealth(100);
+		panelInfoTexts[0].text = photonView.name;
+		if (!PhotonNetwork.IsMasterClient)
+		{
+			myVillageCamera = myVillageCamera_other;
+			villageGround.transform.position += new Vector3(54, 0, 0);
+		}
+		else
+		{
+			myVillageCamera = myVillageCamera_origin;
+		}
 		spawnTargetVisulazer.SetActive(false);
 		if (PhotonNetwork.IsConnectedAndReady)
 		{
@@ -69,18 +89,23 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public void IncreaseCoin()
 	{
 		totalCoins++;
-		totalCoinText.GetComponent<TextMeshProUGUI>().text = totalCoins.ToString();
+		panelInfoTexts[2].text = totalCoins.ToString();
 	}
 	public void DecreaseCoin(int _amount)
 	{
 		totalCoins -= _amount;
-		totalCoinText.GetComponent<TextMeshProUGUI>().text = totalCoins.ToString();
+		panelInfoTexts[2].text = totalCoins.ToString();
 	}
 
 	private void SetCoin(int c)
 	{
 		totalCoins = c;
-		totalCoinText.GetComponent<TextMeshProUGUI>().text = totalCoins.ToString();
+		panelInfoTexts[2].text = totalCoins.ToString();
+	}
+	private void SetHealth(int c)
+	{
+		health = c;
+		panelInfoTexts[1].text = totalCoins.ToString();
 	}
 	public void SelectArmy(string targetArmy)
 	{
@@ -183,6 +208,48 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		else
 		{
 			enemyBuildings = gameManager.clientBuildings; // MasterClient'ın binaları
+		}
+	}
+	public void ChangeCamera()
+	{
+		bool _status = !myCamera.activeSelf;
+
+		myCamera.SetActive(_status);
+		myVillageCamera.SetActive(!_status);
+
+		foreach (GameObject obj in battleStuff)
+		{
+			obj.SetActive(_status);
+		}
+		foreach (GameObject obj in villageStuff)
+		{
+			obj.SetActive(!_status);
+		}
+	}
+
+	public void buildStructure(string bname)
+	{
+		string[] splitedString = bname.Split(",");
+		string stcName = splitedString[0];
+		int stcCoast = int.Parse(splitedString[1]);
+		int index = -1;
+
+		switch (stcName)
+		{
+			case "barracks":
+				index = 0;
+				break;
+			case "archer":
+				index = 1;
+				break;
+			default:
+				index = -1;
+				break;
+		}
+		if (index >= 0 && stcCoast <= totalCoins)
+		{
+			myVillage[index].SetActive(true);
+			DecreaseCoin(stcCoast);
 		}
 	}
 }

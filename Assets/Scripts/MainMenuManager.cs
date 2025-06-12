@@ -66,7 +66,7 @@ public class MainMenuManager : MonoBehaviour
 	}
 	public void CheckStartGameButton()
 	{
-		if (PhotonNetwork.PlayerList.Length > 0 && PhotonNetwork.IsMasterClient)
+		if (PhotonNetwork.PlayerList.Length > 1 && PhotonNetwork.IsMasterClient)
 			startGameButton.GetComponent<Button>().interactable = true;
 	}
 	public void ClosePanels()

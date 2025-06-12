@@ -8,7 +8,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public int health = 25;
 	public int damage = 5;
 	public float attackSpeed = 1.5f;
-	[SerializeField] private int amount = 10;
+	public int amount = 10;
 
 	public Transform target;
 	private List<Transform> enemiesInRange = new List<Transform>();
@@ -18,11 +18,11 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public Transform[] enemyBuildings;
 	public GameObject collidersParent;
 	public string enemyTag = "";
-	private Rigidbody rb;
-	private Animator animator;
+	public Rigidbody rb;
+	public Animator animator;
 	// bool canMove = true;
-	bool canAttack = false;
-	float attackTimer = 0f;
+	public bool canAttack = false;
+	public float attackTimer = 0f;
 
 	void Start()
 	{
@@ -36,7 +36,11 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (!photonView.IsMine)
 			return;
-		if (!canAttack && target != null)
+		if (target == null)
+		{
+			UpdateTarget();
+		}
+		else if (!canAttack && target != null)
 		{
 			Vector3 direction = target.position - transform.position;
 			float distance = direction.magnitude;
@@ -53,11 +57,11 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			{
 				animator.SetTrigger("walk");
 				rb.MovePosition(transform.position + flatDirection * moveSpeed * Time.fixedDeltaTime);
+				canAttack = false;
 			}
 			else
 			{
 				rb.velocity = Vector3.zero;
-				// canMove = false;
 				canAttack = true;
 				attackTimer = 0f;
 				animator.SetTrigger("attack");
@@ -75,11 +79,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			{
 				attackTimer += Time.deltaTime;
 			}
-		}
-
-		else if (target == null)
-		{
-			UpdateTarget();
 		}
 	}
 
@@ -151,11 +150,10 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		}
 	}
 
-	private void UpdateTarget()
+	public void UpdateTarget()
 	{
 		float closestDistance = Mathf.Infinity;
 		Transform closestEnemy = null;
-		canAttack = false;
 
 		foreach (Transform enemy in enemiesInRange)
 		{
@@ -171,7 +169,9 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		{
 			closestEnemy = GetBuildingTarget();
 		}
+
 		target = closestEnemy;
+		canAttack = false;
 	}
 
 	public void SetEnemyTag(string t)
@@ -261,7 +261,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			UpdateTarget();
 		}
 	}
-	void AttackTarget()
+	public virtual void AttackTarget()
 	{
 		if (canAttack && target != null)
 		{
@@ -270,6 +270,10 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			{
 				animator.SetTrigger("attack");
 				enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
+			}
+			else
+			{
+				UpdateTarget();
 			}
 		}
 	}
