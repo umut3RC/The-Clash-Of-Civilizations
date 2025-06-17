@@ -18,10 +18,11 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public GameObject villageGround;
 	public GameObject[] battleStuff;
 	public GameObject[] villageStuff;
-	public TextMeshProUGUI[] panelInfoTexts;//username hp coin
+	public TextMeshProUGUI[] panelInfoTexts;//username hp coin username hp coin
 	public Transform[] myBuildings;
 	public Transform[] enemyBuildings;
 	public GameObject[] myVillage;
+	public GameObject[] armyButtons;
 	[SerializeField] private int totalCoins = 0;
 	private float coinTimer = 0f;
 	bool selectedSpawn = false;
@@ -40,7 +41,8 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		}
 		SetCoin(100);
 		SetHealth(100);
-		panelInfoTexts[0].text = photonView.name;
+		panelInfoTexts[0].text = PhotonNetwork.NickName;
+		panelInfoTexts[3].text = PhotonNetwork.NickName;
 		if (!PhotonNetwork.IsMasterClient)
 		{
 			myVillageCamera = myVillageCamera_other;
@@ -90,22 +92,26 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	{
 		totalCoins++;
 		panelInfoTexts[2].text = totalCoins.ToString();
+		panelInfoTexts[5].text = totalCoins.ToString();
 	}
 	public void DecreaseCoin(int _amount)
 	{
 		totalCoins -= _amount;
 		panelInfoTexts[2].text = totalCoins.ToString();
+		panelInfoTexts[5].text = totalCoins.ToString();
 	}
 
 	private void SetCoin(int c)
 	{
 		totalCoins = c;
 		panelInfoTexts[2].text = totalCoins.ToString();
+		panelInfoTexts[5].text = totalCoins.ToString();
 	}
 	private void SetHealth(int c)
 	{
 		health = c;
 		panelInfoTexts[1].text = totalCoins.ToString();
+		panelInfoTexts[4].text = totalCoins.ToString();
 	}
 	public void SelectArmy(string targetArmy)
 	{
@@ -232,24 +238,59 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		string[] splitedString = bname.Split(",");
 		string stcName = splitedString[0];
 		int stcCoast = int.Parse(splitedString[1]);
-		int index = -1;
+		int strcIndex = -1;
+		int armyIndex = -1;
 
 		switch (stcName)
 		{
 			case "barracks":
-				index = 0;
+				strcIndex = 0;
+				armyIndex = 0;
 				break;
 			case "archer":
-				index = 1;
+				strcIndex = 1;
+				armyIndex = 1;
 				break;
 			default:
-				index = -1;
+				strcIndex = -1;
+				armyIndex = -1;
 				break;
 		}
-		if (index >= 0 && stcCoast <= totalCoins)
+		if (armyIndex >= 0 && strcIndex >= 0 && stcCoast <= totalCoins)
 		{
-			myVillage[index].SetActive(true);
+			myVillage[strcIndex].SetActive(true);
+			armyButtons[armyIndex].SetActive(true);
 			DecreaseCoin(stcCoast);
 		}
 	}
+
+	// [PunRPC]
+	// public void RPC_DealDamageToTower(int towerIndex, int damage)
+	// {
+	// 	if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
+
+	// 	TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
+	// 	if (targetTower != null)
+	// 	{
+	// 		targetTower.DecreaseHp(damage);
+	// 	}
+	// }
+	[PunRPC]
+	public void RPC_DealDamageToTower(int towerIndex, int damage)
+	{
+		if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
+
+		TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
+		if (targetTower != null)
+		{
+			int newHp = targetTower.health - damage;
+			newHp = Mathf.Max(0, newHp);
+
+			// Kendi kule canını azalt
+			targetTower.health = newHp;
+			targetTower.photonView.RPC("RPC_DecreaseHp", RpcTarget.All, newHp);
+		}
+	}
+
+
 }

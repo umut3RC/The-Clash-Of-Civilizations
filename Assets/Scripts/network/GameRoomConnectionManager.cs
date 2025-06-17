@@ -3,6 +3,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using TMPro;
 
 public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 {
@@ -10,6 +11,11 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	public string prefabName = "player room manager prefab";
 	public Transform[] clientBuildings;
 	public Transform[] otherBuildings;
+	public GameObject pausePanel;
+	public TextMeshProUGUI pauseTimerText;
+	private bool isGamePaused = false;
+	private float pauseDuration = 20f;
+	private float pauseTimer = 0f;
 
 	void Start()
 	{
@@ -26,6 +32,52 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			if (found != null) spawnPoint = found.transform;
 		}
 	}
+
+	void Update()
+	{
+		// if (!photonView.IsMine)
+		// {
+		// 	return;
+		// }
+		if (isGamePaused)
+		{
+			// Time.timeScale 0 olduğunda Time.deltaTime da 0 olacağı için Unscaled kullan
+			pauseTimer -= Time.unscaledDeltaTime;
+			pauseTimerText.text = pauseTimer.ToString();
+			if (pauseTimer <= 0f)
+			{
+				ResumeGame();
+			}
+		}
+	}
+
+	// void OnApplicationFocus(bool hasFocus)
+	// {
+	// 	if (!hasFocus && PhotonNetwork.IsConnected && photonView.IsMine && !isGamePaused)
+	// 	{
+	// 		// Odağı kaybetti, herkese bildir
+	// 		photonView.RPC("RPC_PauseGameForAll", RpcTarget.AllBuffered);
+	// 	}
+	// }
+	[PunRPC]
+	void RPC_PauseGameForAll()
+	{
+		if (!isGamePaused)
+		{
+			isGamePaused = true;
+			pauseTimer = pauseDuration;
+			Time.timeScale = 0f;
+			pausePanel.SetActive(true);
+		}
+	}
+
+	void ResumeGame()
+	{
+		isGamePaused = false;
+		Time.timeScale = 1f;
+		pausePanel.SetActive(true);
+	}
+
 
 	public override void OnPlayerLeftRoom(Player otherPlayer)
 	{

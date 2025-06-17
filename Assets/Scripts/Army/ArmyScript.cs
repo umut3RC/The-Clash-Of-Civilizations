@@ -23,7 +23,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	// bool canMove = true;
 	public bool canAttack = false;
 	public float attackTimer = 0f;
-
+	PhotonView enemyPlayerPv = null;
 	void Start()
 	{
 		rb = GetComponent<Rigidbody>();
@@ -265,15 +265,42 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (canAttack && target != null)
 		{
-			ArmyScript enemy = target.GetComponent<ArmyScript>();
-			if (enemy != null)
+			if (target.CompareTag("Tower"))
 			{
-				animator.SetTrigger("attack");
-				enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
+				TowerScript tower = target.GetComponent<TowerScript>();
+				if (tower != null)
+				{
+					int towerId = tower.GetMyID();
+
+					// Tüm oyuncuları bul
+					if (enemyPlayerPv == null)
+					{
+						GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+						foreach (GameObject p in players)
+						{
+							enemyPlayerPv = p.GetComponent<PhotonView>();
+							break;
+						}
+					}
+					if (enemyPlayerPv != null && !enemyPlayerPv.IsMine)
+					{
+						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.Others, towerId, damage);
+					}
+				}
 			}
+
 			else
 			{
-				UpdateTarget();
+				ArmyScript enemy = target.GetComponent<ArmyScript>();
+				if (enemy != null)
+				{
+					animator.SetTrigger("attack");
+					enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
+				}
+				else
+				{
+					UpdateTarget();
+				}
 			}
 		}
 	}
