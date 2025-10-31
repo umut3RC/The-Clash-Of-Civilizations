@@ -24,6 +24,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public bool canAttack = false;
 	public float attackTimer = 0f;
 	PhotonView enemyPlayerPv = null;
+	bool isReady = false;
 	void Start()
 	{
 		rb = GetComponent<Rigidbody>();
@@ -34,7 +35,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 	void FixedUpdate()
 	{
-		if (!photonView.IsMine)
+		if (!photonView.IsMine || !isReady)
 			return;
 		if (target == null)
 		{
@@ -81,16 +82,10 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			}
 		}
 	}
-
 	public int GetAmount()
 	{
 		return (amount);
 	}
-
-	// public void SetEnemyBuildings(Transform[] _targets)
-	// {
-	// 	enemyBuildings = _targets;
-	// }
 
 	[PunRPC]
 	public void RPC_SetEnemyBuildings(int[] viewIDs)
@@ -106,15 +101,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		}
 		enemyBuildings = foundBuildings.ToArray();
 	}
-
-	// private void OnTriggerEnter(Collider other)
-	// {
-	// 	if (other.transform.root.gameObject.tag == enemyTag)
-	// 	{
-	// 		if (target == null || Vector3.Distance(transform.position, other.gameObject.transform.position) < Vector3.Distance(transform.position, target.position))
-	// 			target = other.transform.root.gameObject.transform;
-	// 	}
-	// }
 	private void OnTriggerEnter(Collider other)
 	{
 		if (!photonView.IsMine || enemyTag == null)
@@ -157,7 +143,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 		foreach (Transform enemy in enemiesInRange)
 		{
-			if (enemy == null) continue; // Ölmüş olabilir
+			if (enemy == null) continue;
 			float dist = Vector3.Distance(transform.position, enemy.position);
 			if (dist < closestDistance)
 			{
@@ -183,6 +169,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public void RPC_StartArmy()
 	{
 		collidersParent.SetActive(true);
+		isReady = true;
 		rb.useGravity = true;
 		canAttack = false;
 	}
@@ -195,39 +182,40 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	Transform GetBuildingTarget()
 	{
 		Transform _nearestTarget = null;
-		float distance;
+		float closestDistance = Mathf.Infinity;
 
-		if (enemyBuildings.Length < 1)
+		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+		foreach (GameObject player in players)
 		{
-			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-			foreach (GameObject player in players)
-			{
-				PhotonView playerView = player.GetComponent<PhotonView>();
-				if (!playerView.IsMine)
-				{
-					playerView.RPC("RPC_RequestEnemyBuildings", playerView.Owner, photonView.ViewID);
-					break;
-				}
-			}
-			return null;
-		}
+			PhotonView pv = player.GetComponent<PhotonView>();
 
-		if (enemyBuildings != null && enemyBuildings.Length > 0)
-		{
-			for (int i = 0; i < enemyBuildings.Length; i++)
+			if (pv != null && !pv.IsMine)
 			{
-				if (_nearestTarget == null)
+				Transform castle = player.transform.Find("Castle");
+				if (castle == null) continue;
+
+				List<Transform> targets = new List<Transform>();
+				targets.Add(castle);
+				foreach (Transform child in castle)
 				{
-					_nearestTarget = enemyBuildings[i];
-				}
-				else
-				{
-					distance = Vector3.Distance(transform.position, enemyBuildings[i].position);
-					if (distance < Vector3.Distance(transform.position, _nearestTarget.position))
+					if (child.gameObject.CompareTag("Tower"))
 					{
-						_nearestTarget = enemyBuildings[i];
+						targets.Add(child);
 					}
 				}
+
+				foreach (Transform t in targets)
+				{
+					if (t == null) continue;
+
+					float distance = Vector3.Distance(transform.position, t.position);
+					if (distance < closestDistance)
+					{
+						closestDistance = distance;
+						_nearestTarget = t;
+					}
+				}
+				break;
 			}
 		}
 		return _nearestTarget;
@@ -236,7 +224,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public void TakeDamage(int damage)
 	{
 		health -= damage;
-		animator.SetTrigger("damage");
+		// animator.SetTrigger("damage");
 		if (health <= 0)
 		{
 			Die();
@@ -247,7 +235,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (photonView.IsMine)
 		{
-
 			PhotonNetwork.Destroy(gameObject);
 		}
 	}
@@ -265,30 +252,35 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (canAttack && target != null)
 		{
-			if (target.CompareTag("Tower"))
+			if (target.gameObject.CompareTag("Tower"))
 			{
 				TowerScript tower = target.GetComponent<TowerScript>();
 				if (tower != null)
 				{
 					int towerId = tower.GetMyID();
 
-					// Tüm oyuncuları bul
 					if (enemyPlayerPv == null)
 					{
 						GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 						foreach (GameObject p in players)
 						{
-							enemyPlayerPv = p.GetComponent<PhotonView>();
-							break;
+							PhotonView view = p.GetComponent<PhotonView>();
+							if (!view.IsMine)
+							{
+								enemyPlayerPv = view;
+								break;
+							}
 						}
 					}
-					if (enemyPlayerPv != null && !enemyPlayerPv.IsMine)
+
+					if (enemyPlayerPv != null)
 					{
-						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.Others, towerId, damage);
+						animator.SetTrigger("attack");
+						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.All, towerId, damage);
+						TurnToTarget();
 					}
 				}
 			}
-
 			else
 			{
 				ArmyScript enemy = target.GetComponent<ArmyScript>();
@@ -296,6 +288,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 				{
 					animator.SetTrigger("attack");
 					enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
+					TurnToTarget();
 				}
 				else
 				{
@@ -304,4 +297,17 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			}
 		}
 	}
+	void TurnToTarget()
+	{
+		Vector3 direction = target.position - transform.position;
+
+		Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+
+		if (flatDirection != Vector3.zero)
+		{
+			Quaternion targetRotation = Quaternion.LookRotation(flatDirection);
+			transform.rotation = targetRotation;
+		}
+	}
 }
+

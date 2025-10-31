@@ -9,10 +9,10 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 {
 	public Transform spawnPoint;
 	public string prefabName = "player room manager prefab";
-	public Transform[] clientBuildings;
-	public Transform[] otherBuildings;
 	public GameObject pausePanel;
 	public TextMeshProUGUI pauseTimerText;
+	public GameObject winnerPanel;
+	public TextMeshProUGUI winnerTimer;
 	private bool isGamePaused = false;
 	private float pauseDuration = 20f;
 	private float pauseTimer = 0f;
@@ -89,16 +89,17 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			Player winner = PhotonNetwork.LocalPlayer;
 			Debug.Log($"Kazanan oyuncu: {winner.NickName}");
 
-			StartCoroutine(ReturnToMenu());
+			StartCoroutine(WinGame());
 		}
 	}
 
 	IEnumerator ReturnToMenu()
 	{
-		yield return new WaitForSeconds(5f);
+		// yield return new WaitForSeconds(5f);
 		// "MainMenu" sahnesine veya index 0 olan sahneye dön
 		SceneManager.LoadScene("MainMenu");
 		// Alternatif: SceneManager.LoadScene(0);
+		yield return null;
 	}
 
 	void SpawnAndSetParent()
@@ -130,7 +131,6 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		photonView.RPC("SetParentForObject", RpcTarget.AllBuffered, playerObj.GetComponent<PhotonView>().ViewID);
 	}
 
-
 	[PunRPC]
 	void SetParentForObject(int viewID)
 	{
@@ -140,35 +140,22 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			targetView.transform.SetParent(spawnPoint);
 		}
 	}
-	public Transform[] GetEnemyBuildings(bool isClient)
-	{
-		if (isClient)
-		{
-			return (otherBuildings);
-		}
-		else
-		{
-			return (clientBuildings);
-		}
-	}
-	[PunRPC]
-	public void RegisterPlayerBuildings(int viewID)
-	{
-		PhotonView view = PhotonView.Find(viewID);
-		if (view == null) return;
 
-		PlayerScript player = view.GetComponent<PlayerScript>();
-		if (player == null) return;
+	IEnumerator WinGame()
+	{
+		winnerPanel.SetActive(true);
 
-		if (view.IsMine)
+		float duration = 0f;
+
+		while (duration > 0f)
 		{
-			clientBuildings = player.GetMyBuildings();
+			duration -= Time.deltaTime;
+			winnerTimer.text = Mathf.CeilToInt(duration).ToString();
 		}
-		else
-		{
-			otherBuildings = player.GetMyBuildings();
-			Debug.Log("Other here");
-		}
+		winnerTimer.text = "0";
+		StartCoroutine(ReturnToMenu());
+		winnerPanel.SetActive(false);
+		yield return null;
 	}
 }
 

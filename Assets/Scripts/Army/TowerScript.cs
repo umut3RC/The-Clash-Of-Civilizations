@@ -10,20 +10,17 @@ public class TowerScript : MonoBehaviourPunCallbacks
 	public int index = -1;
 	public int health = 500;
 	public Transform hpBox;
-	int maxHP;
+	private int maxHP;
+
 	void Start()
 	{
 		maxHP = health;
-	}
-	public int GetMyID()
-	{
-		return index;
+		UpdateHealthBar();
 	}
 
-	[PunRPC]
-	public void RPC_DecreaseHp(int newHp)
+	public void DecreaseHp(int damage)
 	{
-		health = newHp;
+		health -= damage;
 		UpdateHealthBar();
 
 		if (health <= 0)
@@ -36,18 +33,42 @@ public class TowerScript : MonoBehaviourPunCallbacks
 	{
 		float ratio = (float)health / (float)maxHP;
 
-		Vector3 scale = hpBox.localScale;
-		scale.y = ratio * 5f;
-		hpBox.localScale = scale;
+		// Bu kontrolü yap: hpBox sahneye ait olmayabilir
+		if (hpBox != null)
+		{
+			Vector3 scale = hpBox.localScale;
+			scale.y = ratio * 5f;
+			hpBox.localScale = scale;
 
-		Vector3 position = hpBox.localPosition;
-		position.y = scale.y / 2f;
-		hpBox.localPosition = position;
+			Vector3 position = hpBox.localPosition;
+			position.y = scale.y / 2f;
+			hpBox.localPosition = position;
+		}
 	}
-
 
 	void DestroyTower()
 	{
-		Debug.Log(index + " Destroyed");
+		if (PhotonNetwork.IsMasterClient)
+		{
+			PhotonView playerView = GetComponentInParent<PlayerScript>().photonView;
+			if (playerView != null)
+			{
+				playerView.RPC("RPC_DestroyTowerByIndex", RpcTarget.All, index);
+			}
+		}
+	}
+	[PunRPC]
+	public void RPC_DestroyTower()
+	{
+		DestroyTowerLocally();
+	}
+	public void DestroyTowerLocally()
+	{
+		Destroy(gameObject);
+	}
+
+	public int GetMyID()
+	{
+		return index;
 	}
 }

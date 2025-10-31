@@ -13,17 +13,17 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public GameObject myCanvas;
 	public GameObject myCamera;
 	GameObject myVillageCamera;
+	public GameObject[] myBuildings;
 	public GameObject myVillageCamera_origin;
 	public GameObject myVillageCamera_other;
 	public GameObject villageGround;
 	public GameObject[] battleStuff;
 	public GameObject[] villageStuff;
 	public TextMeshProUGUI[] panelInfoTexts;//username hp coin username hp coin
-	public Transform[] myBuildings;
-	public Transform[] enemyBuildings;
 	public GameObject[] myVillage;
 	public GameObject[] armyButtons;
 	[SerializeField] private int totalCoins = 0;
+	int coinPlus = 1;
 	private float coinTimer = 0f;
 	bool selectedSpawn = false;
 	string lastTargetArmyName = "";
@@ -39,14 +39,14 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		{
 			return;
 		}
-		SetCoin(100);
+		SetCoin(1000);
 		SetHealth(100);
 		panelInfoTexts[0].text = PhotonNetwork.NickName;
 		panelInfoTexts[3].text = PhotonNetwork.NickName;
 		if (!PhotonNetwork.IsMasterClient)
 		{
 			myVillageCamera = myVillageCamera_other;
-			villageGround.transform.position += new Vector3(54, 0, 0);
+			villageGround.transform.position += new Vector3(55, 0, 0);
 		}
 		else
 		{
@@ -61,6 +61,10 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 
 	void Update()
 	{
+		if (!photonView.IsMine)
+		{
+			return;
+		}
 		coinTimer += Time.deltaTime;
 
 		if (coinTimer >= 1f)
@@ -134,9 +138,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 				ArmyScript _target = lastTargetArmy.GetComponent<ArmyScript>();
 
 				lastTargetArmy.GetComponent<PhotonView>().RPC("RPC_SetLayerAndTag", RpcTarget.AllBuffered, armyLayer);
-
 				_target.SetEnemyTag(armyLayer == "Army1" ? "Army2" : "Army1");
-				// _target.SetEnemyBuildings(gameManager.GetEnemyBuildings(photonView.IsMine));
 				DecreaseCoin(_amount);
 			}
 		}
@@ -150,7 +152,6 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		ArmyScript armyScript = lastTargetArmy.GetComponent<ArmyScript>();
 
 		armyScript.GetComponent<PhotonView>().RPC("RPC_StartArmy", RpcTarget.AllBuffered);
-		// armyScript.SetEnemyBuildings(enemyBuildings);
 
 		lastTargetArmy = null;
 	}
@@ -171,50 +172,12 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		}
 		isReady = true;
 	}
-	public Transform[] GetMyBuildings()
-	{
-		return (myBuildings);
-	}
-	[PunRPC]
-	public void RPC_RequestEnemyBuildings(int armyViewID)
-	{
-		PhotonView armyView = PhotonView.Find(armyViewID);
-		if (armyView != null)
-		{
-			Transform[] buildings = GetMyBuildings();
-			int[] buildingIDs = new int[buildings.Length];
-			for (int i = 0; i < buildings.Length; i++)
-			{
-				PhotonView buildingView = buildings[i].GetComponent<PhotonView>();
-				buildingIDs[i] = buildingView.ViewID;
-			}
-
-			armyView.RPC("RPC_SetEnemyBuildings", armyView.Owner, buildingIDs);
-		}
-	}
 
 	public void SetGameManager(GameRoomConnectionManager manager)
 	{
 		gameManager = manager;
 
-		// ViewID ile buildings'i kayıt ettir
-		photonView.ViewID.ToString(); // sadece tetikleyici
-		gameManager.photonView.RPC("RegisterPlayerBuildings", RpcTarget.AllBuffered, photonView.ViewID);
-
-		// enemyBuildings'i belirle
-		SetEnemyBuildings();
-	}
-
-	void SetEnemyBuildings()
-	{
-		if (PhotonNetwork.IsMasterClient)
-		{
-			enemyBuildings = gameManager.otherBuildings; // Diğer oyuncunun binaları
-		}
-		else
-		{
-			enemyBuildings = gameManager.clientBuildings; // MasterClient'ın binaları
-		}
+		photonView.ViewID.ToString();
 	}
 	public void ChangeCamera()
 	{
@@ -251,30 +214,72 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 				strcIndex = 1;
 				armyIndex = 1;
 				break;
+			case "wizard":
+				strcIndex = 2;
+				armyIndex = 3;
+				break;
+			case "smith":
+				strcIndex = 3;
+				armyIndex = 6;
+				break;
+			case "farm":
+				strcIndex = 4;
+				coinPlus += 3;
+				break;
+			case "library":
+				strcIndex = 5;
+				Debug.Log("Open Search!");
+				break;
+			case "barn":
+				strcIndex = 6;
+				armyIndex = 2;
+				break;
 			default:
 				strcIndex = -1;
 				armyIndex = -1;
 				break;
 		}
-		if (armyIndex >= 0 && strcIndex >= 0 && stcCoast <= totalCoins)
+		if (strcIndex >= 0 && stcCoast <= totalCoins)
 		{
 			myVillage[strcIndex].SetActive(true);
-			armyButtons[armyIndex].SetActive(true);
+			if (armyIndex >= 0)
+				armyButtons[armyIndex].SetActive(true);
 			DecreaseCoin(stcCoast);
+		}
+		CheckKing();
+	}
+	void CheckKing()
+	{
+		int i = 0;
+		foreach (GameObject strc in myVillage)
+		{
+			if (strc.activeSelf)
+			{
+				i++;
+			}
+		}
+
+		if (i == myVillage.Length)
+		{
+			Debug.Log("Hail the king!");
+			armyButtons[4].SetActive(true);
 		}
 	}
 
-	// [PunRPC]
-	// public void RPC_DealDamageToTower(int towerIndex, int damage)
-	// {
-	// 	if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
+	[PunRPC]
+	public void RPC_DestroyTowerByIndex(int towerIndex)
+	{
+		if (towerIndex >= 0 && towerIndex < myBuildings.Length)
+		{
+			TowerScript tower = myBuildings[towerIndex].GetComponent<TowerScript>();
+			if (tower != null)
+			{
+				// tower.RPC_DestroyTower();
+				tower.DestroyTowerLocally();
+			}
+		}
+	}
 
-	// 	TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
-	// 	if (targetTower != null)
-	// 	{
-	// 		targetTower.DecreaseHp(damage);
-	// 	}
-	// }
 	[PunRPC]
 	public void RPC_DealDamageToTower(int towerIndex, int damage)
 	{
@@ -283,14 +288,8 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
 		if (targetTower != null)
 		{
-			int newHp = targetTower.health - damage;
-			newHp = Mathf.Max(0, newHp);
-
-			// Kendi kule canını azalt
-			targetTower.health = newHp;
-			targetTower.photonView.RPC("RPC_DecreaseHp", RpcTarget.All, newHp);
+			targetTower.DecreaseHp(damage);
 		}
 	}
-
 
 }
