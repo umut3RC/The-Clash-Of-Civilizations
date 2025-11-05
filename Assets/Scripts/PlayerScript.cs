@@ -9,7 +9,6 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 {
 	public GameObject spawnTargetVisulazer;
 	public LayerMask raycastLayer;
-	public GameObject testArmyPrefab;
 	public GameObject myCanvas;
 	public GameObject myCamera;
 	GameObject myVillageCamera;
@@ -22,6 +21,8 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	public TextMeshProUGUI[] panelInfoTexts;//username hp coin username hp coin
 	public GameObject[] myVillage;
 	public GameObject[] armyButtons;
+	public GameObject[] villageButtons;
+	public GameObject[] villageBuildingInfos;
 	[SerializeField] private int totalCoins = 0;
 	int coinPlus = 1;
 	private float coinTimer = 0f;
@@ -194,6 +195,10 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		{
 			obj.SetActive(!_status);
 		}
+		foreach (GameObject obj in villageBuildingInfos)
+		{
+			obj.SetActive(false);
+		}
 	}
 
 	public void buildStructure(string bname)
@@ -242,6 +247,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		if (strcIndex >= 0 && stcCoast <= totalCoins)
 		{
 			myVillage[strcIndex].SetActive(true);
+			villageButtons[strcIndex].SetActive(false);
 			if (armyIndex >= 0)
 				armyButtons[armyIndex].SetActive(true);
 			DecreaseCoin(stcCoast);

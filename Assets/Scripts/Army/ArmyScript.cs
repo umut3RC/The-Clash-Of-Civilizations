@@ -156,8 +156,12 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			closestEnemy = GetBuildingTarget();
 		}
 
-		target = closestEnemy;
-		canAttack = false;
+		//for buildings
+		if (target == null || Vector3.Distance(transform.position, closestEnemy.position) < Vector3.Distance(transform.position, target.position))
+		{
+			target = closestEnemy;
+			canAttack = false;
+		}
 	}
 
 	public void SetEnemyTag(string t)

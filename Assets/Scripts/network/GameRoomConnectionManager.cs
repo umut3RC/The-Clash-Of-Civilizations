@@ -143,14 +143,18 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	IEnumerator WinGame()
 	{
+		pausePanel.SetActive(true);
 		winnerPanel.SetActive(true);
+		winnerTimer.gameObject.SetActive(true);
+		winnerTimer.transform.parent.gameObject.SetActive(true);
 
-		float duration = 0f;
+		int duration = 5;
 
 		while (duration > 0f)
 		{
-			duration -= Time.deltaTime;
-			winnerTimer.text = Mathf.CeilToInt(duration).ToString();
+			winnerTimer.text = duration.ToString();
+			duration--;
+			yield return new WaitForSeconds(1f);
 		}
 		winnerTimer.text = "0";
 		StartCoroutine(ReturnToMenu());

@@ -33,16 +33,11 @@ public class TowerScript : MonoBehaviourPunCallbacks
 	{
 		float ratio = (float)health / (float)maxHP;
 
-		// Bu kontrolü yap: hpBox sahneye ait olmayabilir
 		if (hpBox != null)
 		{
 			Vector3 scale = hpBox.localScale;
 			scale.y = ratio * 5f;
 			hpBox.localScale = scale;
-
-			Vector3 position = hpBox.localPosition;
-			position.y = scale.y / 2f;
-			hpBox.localPosition = position;
 		}
 	}
 
