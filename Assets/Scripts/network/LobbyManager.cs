@@ -3,7 +3,7 @@ using Photon.Realtime;
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
@@ -14,6 +14,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	public MainMenuManager menuManager;
 	public TextMeshProUGUI playerListText;
 	private List<RoomInfo> availableRooms = new List<RoomInfo>();
+	public TextMeshProUGUI reconnectTimerText;
+	public TextMeshProUGUI playerCountText;
+
+	private float retryInterval = 5f;
+	private bool isRetrying = false;
 
 	void Awake()
 	{
@@ -27,6 +32,20 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 			menuManager.PrepareLoadStatus();
 		}
 	}
+	void Update()
+	{
+		if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom)
+		{
+			// Not: Bu sizin 20 CCU global limitiniz DEĞİL, 
+			// sadece bu bölgedeki (lobi+odalar) oyuncu sayısıdır.
+			int playersInRegion = PhotonNetwork.CountOfPlayers;
+			playerCountText.text = $"{playersInRegion} / 20";
+		}
+		else
+		{
+			playerCountText.text = "";
+		}
+	}
 
 	public override void OnConnectedToMaster()
 	{
@@ -34,6 +53,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 		// PhotonNetwork.JoinLobby(customLobby);
 		PhotonNetwork.JoinLobby();
 		menuManager.PrepareLoadStatus();
+		isRetrying = false;
 	}
 	public override void OnJoinedLobby()
 	{
@@ -146,5 +166,58 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	{
 		UpdatePlayerList();
 		menuManager.EnterRoom();
+	}
+
+	public override void OnDisconnected(DisconnectCause cause)
+	{
+		// Bağlantının kesilme nedenini logla
+		Debug.LogError($"Bağlantı koptu. Neden: {cause}");
+		isRetrying = false; // Düşme nedenine bakmadan önce retry'ı sıfırla
+
+		// Eğer neden "Sunucu Dolu" (MaxCcuReached) ise:
+		if (cause == DisconnectCause.MaxCcuReached)
+		{
+			// 1. İsteğiniz: Konsola yazdır
+			Debug.LogError("SUNUCU DOLU! (Maksimum 20 CCU Limitine Ulaşıldı)");
+
+			// if (statusText != null)
+			// 	statusText.text = "Sunucu dolu! Sıraya alınıyor...";
+
+			// 2. İsteğiniz: "Sıra" (Yeniden Deneme) sistemini başlat
+			StartCoroutine(RetryConnectionCoroutine());
+		}
+		else if (cause != DisconnectCause.DisconnectByClientLogic)
+		{
+			// Başka bir beklenmedik hata olduysa (internet kopması vb.)
+			// if (statusText != null)
+			// 	statusText.text = "Bağlantı koptu. Yeniden deneniyor...";
+
+			StartCoroutine(RetryConnectionCoroutine());
+		}
+	}
+
+	private IEnumerator RetryConnectionCoroutine()
+	{
+		if (isRetrying) yield break;
+		menuManager.OpenReConnectPanel();
+		isRetrying = true;
+		float timer = retryInterval;
+		while (isRetrying && !PhotonNetwork.IsConnected)
+		{
+			// Kullanıcıya kaç saniye kaldığını göster
+			while (timer > 0)
+			{
+				timer -= Time.deltaTime;
+				reconnectTimerText.text = timer.ToString();
+				yield return null;
+			}
+
+			reconnectTimerText.text = "*connecting*";
+			PhotonNetwork.ConnectUsingSettings();
+			timer = retryInterval;
+			yield return new WaitForSeconds(3f);
+		}
+
+		isRetrying = false;
 	}
 }

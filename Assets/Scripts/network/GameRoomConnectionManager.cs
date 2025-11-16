@@ -9,10 +9,15 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 {
 	public Transform spawnPoint;
 	public string prefabName = "player room manager prefab";
+	public GameObject mainPanel;
 	public GameObject pausePanel;
 	public TextMeshProUGUI pauseTimerText;
+
 	public GameObject winnerPanel;
 	public TextMeshProUGUI winnerTimer;
+
+	public GameObject selectEmpirePanel;
+
 	private bool isGamePaused = false;
 	private float pauseDuration = 20f;
 	private float pauseTimer = 0f;
@@ -22,6 +27,8 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		if (PhotonNetwork.IsConnectedAndReady)
 		{
 			SpawnAndSetParent();
+			mainPanel.SetActive(true);
+			selectEmpirePanel.SetActive(true);
 		}
 	}
 	void Awake()
@@ -33,23 +40,23 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		}
 	}
 
-	void Update()
-	{
-		// if (!photonView.IsMine)
-		// {
-		// 	return;
-		// }
-		if (isGamePaused)
-		{
-			// Time.timeScale 0 olduğunda Time.deltaTime da 0 olacağı için Unscaled kullan
-			pauseTimer -= Time.unscaledDeltaTime;
-			pauseTimerText.text = pauseTimer.ToString();
-			if (pauseTimer <= 0f)
-			{
-				ResumeGame();
-			}
-		}
-	}
+	// void Update()
+	// {
+	// 	// if (!photonView.IsMine)
+	// 	// {
+	// 	// 	return;
+	// 	// }
+	// 	if (isGamePaused)
+	// 	{
+	// 		// Time.timeScale 0 olduğunda Time.deltaTime da 0 olacağı için Unscaled kullan
+	// 		pauseTimer -= Time.unscaledDeltaTime;
+	// 		pauseTimerText.text = pauseTimer.ToString();
+	// 		if (pauseTimer <= 0f)
+	// 		{
+	// 			ResumeGame();
+	// 		}
+	// 	}
+	// }
 
 	// void OnApplicationFocus(bool hasFocus)
 	// {
@@ -143,10 +150,8 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	IEnumerator WinGame()
 	{
-		pausePanel.SetActive(true);
+		mainPanel.SetActive(true);
 		winnerPanel.SetActive(true);
-		winnerTimer.gameObject.SetActive(true);
-		winnerTimer.transform.parent.gameObject.SetActive(true);
 
 		int duration = 5;
 

@@ -13,6 +13,7 @@ public class MainMenuManager : MonoBehaviour
 	public GameObject menuPanel;
 	public GameObject roomPanel;
 	public GameObject empiresPanel;
+	public GameObject reconnectPanel;
 	public GameObject startGameButton;
 	float loadValue = 3f;
 	public Image loadImage;
@@ -41,30 +42,32 @@ public class MainMenuManager : MonoBehaviour
 
 	public void StartPanels()
 	{
+		ClosePanels();
 		userNamePanel.SetActive(true);
-		menuPanel.SetActive(false);
-		roomPanel.SetActive(false);
-		loadingPanel.SetActive(false);
 	}
 	public void SelectEmpireMenu()
 	{
 		if (PhotonNetwork.IsConnected && !string.IsNullOrEmpty(userNameInput.text) && userNameInput.text.Length < 10)
 		{
 			PhotonNetwork.NickName = userNameInput.text;
-			userNamePanel.SetActive(false);
-			empiresPanel.SetActive(true);
+			EnterMainMenu();
+			// userNamePanel.SetActive(false);
+			// empiresPanel.SetActive(true);
 		}
 	}
 	public void EnterMainMenu()
 	{
-			empiresPanel.SetActive(false);
-			userNamePanel.SetActive(false);
+			ClosePanels();
 			menuPanel.SetActive(true);
+	}
+	public void OpenReConnectPanel()
+	{
+			ClosePanels();
+			reconnectPanel.SetActive(true);
 	}
 	public void EnterRoom()
 	{
-		userNamePanel.SetActive(false);
-		menuPanel.SetActive(false);
+		ClosePanels();
 		roomPanel.SetActive(true);
 		lobyManager.UpdatePlayerList();
 	}
