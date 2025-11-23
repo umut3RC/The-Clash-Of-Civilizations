@@ -15,6 +15,8 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	public GameObject winnerPanel;
 	public TextMeshProUGUI winnerTimer;
+	public GameObject losePanel;
+	public TextMeshProUGUI loseTimer;
 
 	public GameObject selectEmpirePanel;
 
@@ -85,26 +87,12 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		pausePanel.SetActive(true);
 	}
 
-
-	public override void OnPlayerLeftRoom(Player otherPlayer)
-	{
-		Debug.Log($"Oyuncu ayrıldı: {otherPlayer.NickName}");
-
-		// Kalan oyuncuyu bul
-		if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
-		{
-			Player winner = PhotonNetwork.LocalPlayer;
-			Debug.Log($"Kazanan oyuncu: {winner.NickName}");
-
-			StartCoroutine(WinGame());
-		}
-	}
-
 	IEnumerator ReturnToMenu()
 	{
 		// yield return new WaitForSeconds(5f);
 		// "MainMenu" sahnesine veya index 0 olan sahneye dön
-		SceneManager.LoadScene("MainMenu");
+		// SceneManager.LoadScene("MainMenu");
+		PhotonNetwork.LeaveRoom();
 		// Alternatif: SceneManager.LoadScene(0);
 		yield return null;
 	}
@@ -148,7 +136,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		}
 	}
 
-	IEnumerator WinGame()
+	public IEnumerator WinGame()
 	{
 		mainPanel.SetActive(true);
 		winnerPanel.SetActive(true);
@@ -165,6 +153,44 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		StartCoroutine(ReturnToMenu());
 		winnerPanel.SetActive(false);
 		yield return null;
+	}
+	public IEnumerator LoseGame()
+	{
+		mainPanel.SetActive(true);
+		winnerPanel.SetActive(true);
+
+		int duration = 5;
+
+		while (duration > 0f)
+		{
+			winnerTimer.text = duration.ToString();
+			duration--;
+			yield return new WaitForSeconds(1f);
+		}
+		winnerTimer.text = "0";
+		StartCoroutine(ReturnToMenu());
+		winnerPanel.SetActive(false);
+		yield return null;
+	}
+
+
+	public override void OnLeftRoom()
+	{
+		SceneManager.LoadScene("MainMenu");
+	}
+
+	public override void OnPlayerLeftRoom(Player otherPlayer)
+	{
+		Debug.Log($"Oyuncu ayrıldı: {otherPlayer.NickName}");
+
+		// Kalan oyuncuyu bul
+		if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
+		{
+			Player winner = PhotonNetwork.LocalPlayer;
+			Debug.Log($"Kazanan oyuncu: {winner.NickName}");
+
+			StartCoroutine(WinGame());
+		}
 	}
 }
 

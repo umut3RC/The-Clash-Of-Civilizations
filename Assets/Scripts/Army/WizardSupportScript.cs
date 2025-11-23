@@ -4,20 +4,48 @@ using UnityEngine;
 using Photon.Pun;
 public class WizardSupportScript : ArmyScript
 {
-	public override void AttackTarget()
+	public GameObject healAuraObject;
+	public float auraDuration = 5.0f;
+	public float auraCooldown = 5.0f;
+	void Start()
 	{
-		if (canAttack && target != null)
+		if (healAuraObject != null)
 		{
-			ArmyScript enemy = target.GetComponent<ArmyScript>();
-			if (enemy != null)
-			{
-				animator.SetTrigger("attack");
-				enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
-			}
-			else
-			{
-				UpdateTarget();
-			}
+			healAuraObject.SetActive(false);
+		}
+		if (photonView.IsMine)
+		{
+			StartCoroutine(AuraToggleCoroutine());
+		}
+	}
+	private IEnumerator AuraToggleCoroutine()
+	{
+		// Büyücü hayatta olduğu sürece bu döngü devam eder
+		while (true)
+		{
+			// --- 1. AURA AÇIK ---
+
+			// Diğer oyunculara (ve kendimize) aurayı AÇ komutu gönder
+			photonView.RPC(nameof(RPC_SetAuraActive), RpcTarget.All, true);
+
+			// 5 saniye (açık) bekle
+			yield return new WaitForSeconds(auraDuration);
+
+			// --- 2. AURA KAPALI ---
+
+			// Diğer oyunculara (ve kendimize) aurayı KAPAT komutu gönder
+			photonView.RPC(nameof(RPC_SetAuraActive), RpcTarget.All, false);
+
+			// 5 saniye (kapalı) bekle
+			yield return new WaitForSeconds(auraCooldown);
+		}
+	}
+	[PunRPC]
+	private void RPC_SetAuraActive(bool isActive)
+	{
+		if (healAuraObject != null)
+		{
+			healAuraObject.SetActive(isActive);
 		}
 	}
 }

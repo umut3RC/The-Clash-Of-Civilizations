@@ -5,7 +5,6 @@ using Photon.Pun;
 
 public class ArmyScript : MonoBehaviourPunCallbacks
 {
-	public int health = 25;
 	public int damage = 5;
 	public float attackSpeed = 1.5f;
 	public int amount = 10;
@@ -25,12 +24,14 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public float attackTimer = 0f;
 	PhotonView enemyPlayerPv = null;
 	bool isReady = false;
+	[SerializeField] private int maxHealth = 25;
+	private int health = 25;
 	void Start()
 	{
 		rb = GetComponent<Rigidbody>();
 		rb.useGravity = false;
 		animator = GetComponent<Animator>();
-		// animator.SetTrigger("idle");
+		health = maxHealth;
 	}
 
 	void FixedUpdate()
@@ -233,6 +234,17 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		{
 			Die();
 		}
+	}
+	[PunRPC]
+	public void RPC_Heal(int amount)
+	{
+		// Canı sadece maksimum cana kadar artır
+		health += amount;
+		health = Mathf.Min(health, maxHealth);
+
+		// (İsteğe bağlı) Eğer bir can barınız (HP Bar) varsa,
+		// onu burada güncelleyebilirsiniz.
+		// UpdateHealthBar(health, maxHealth);
 	}
 
 	void Die()

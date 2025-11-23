@@ -5,6 +5,7 @@ using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
 public class PlayerScript : MonoBehaviourPunCallbacks
 {
 	public GameObject spawnTargetVisulazer;
@@ -95,7 +96,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 
 	public void IncreaseCoin()
 	{
-		totalCoins++;
+		totalCoins += coinPlus;
 		panelInfoTexts[2].text = totalCoins.ToString();
 		panelInfoTexts[5].text = totalCoins.ToString();
 	}
@@ -203,6 +204,10 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 
 	public void buildStructure(string bname)
 	{
+		if (!photonView.IsMine)
+		{
+			return;
+		}
 		string[] splitedString = bname.Split(",");
 		string stcName = splitedString[0];
 		int stcCoast = int.Parse(splitedString[1]);
@@ -244,15 +249,33 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 				armyIndex = -1;
 				break;
 		}
+
 		if (strcIndex >= 0 && stcCoast <= totalCoins)
 		{
-			myVillage[strcIndex].SetActive(true);
+
+			DecreaseCoin(stcCoast);
 			villageButtons[strcIndex].SetActive(false);
 			if (armyIndex >= 0)
 				armyButtons[armyIndex].SetActive(true);
-			DecreaseCoin(stcCoast);
+
+			photonView.RPC("RPC_ActivateBuilding", RpcTarget.All, strcIndex);
+
+			CheckKing();
 		}
-		CheckKing();
+		else
+		{
+			Debug.Log("There is a problem");
+		}
+	}
+	[PunRPC]
+	public void RPC_ActivateBuilding(int index)
+	{
+
+		if (index >= 0 && index < myVillage.Length)
+		{
+
+			myVillage[index].SetActive(true);
+		}
 	}
 	void CheckKing()
 	{
@@ -272,6 +295,30 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		}
 	}
 
+	// [PunRPC]
+	// public void RPC_DestroyTowerByIndex(int towerIndex)
+	// {
+	// 	if (towerIndex >= 0 && towerIndex < myBuildings.Length)
+	// 	{
+	// 		TowerScript tower = myBuildings[towerIndex].GetComponent<TowerScript>();
+	// 		if (tower != null)
+	// 		{
+	// 			tower.DestroyTowerLocally();
+	// 		}
+	// 	}
+	// }
+
+	// [PunRPC]
+	// public void RPC_DealDamageToTower(int towerIndex, int damage)
+	// {
+	// 	if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
+
+	// 	TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
+	// 	if (targetTower != null)
+	// 	{
+	// 		targetTower.DecreaseHp(damage);
+	// 	}
+	// }
 	[PunRPC]
 	public void RPC_DestroyTowerByIndex(int towerIndex)
 	{
@@ -280,15 +327,34 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			TowerScript tower = myBuildings[towerIndex].GetComponent<TowerScript>();
 			if (tower != null)
 			{
-				// tower.RPC_DestroyTower();
 				tower.DestroyTowerLocally();
 			}
+
+			// --- YENİ EKLENEN KISIM BAŞLANGICI ---
+
+			// Eğer yıkılan bina 0. index ise (Ana Bina)
+			if (towerIndex == 0)
+			{
+				Debug.Log("Ana bina yıkıldı! Oyun Bitiyor...");
+
+				// Bu kararı sadece Master Client vermeli ki komut bir kere gönderilsin
+				if (PhotonNetwork.IsMasterClient)
+				{
+					// Kaybeden oyuncunun (bu scriptin sahibinin) ActorNumber'ını herkese gönder
+					int loserActorNumber = photonView.Owner.ActorNumber;
+
+					// RPC_FinishGame fonksiyonunu herkes için çağır
+					photonView.RPC("RPC_FinishGame", RpcTarget.All, loserActorNumber);
+				}
+			}
+			// --- YENİ EKLENEN KISIM SONU ---
 		}
 	}
 
 	[PunRPC]
 	public void RPC_DealDamageToTower(int towerIndex, int damage)
 	{
+		// ... (Bu kısım aynen kalabilir) ...
 		if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
 
 		TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
@@ -298,4 +364,22 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		}
 	}
 
+	[PunRPC]
+	public void RPC_FinishGame(int loserActorNumber)
+	{
+		if (gameManager == null)
+		{
+			Debug.Log("Missing manager!");
+			return;
+		}
+		if (PhotonNetwork.LocalPlayer.ActorNumber == loserActorNumber)
+		{
+			StartCoroutine(gameManager.LoseGame());
+		}
+		else
+		{
+			StartCoroutine(gameManager.WinGame());
+		}
+	}
+	
 }
