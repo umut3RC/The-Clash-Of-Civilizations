@@ -3745,6 +3745,7 @@ GameObject:
   - component: {fileID: 1180955402}
   - component: {fileID: 1180955401}
   - component: {fileID: 1180955400}
+  - component: {fileID: 1180955403}
   m_Layer: 5
   m_Name: InputField join room
   m_TagString: Untagged
@@ -3909,6 +3910,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1180955398}
   m_CullTransparentMesh: 1
+--- !u!114 &1180955403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1180955398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 408f1a30fe8bce346838c12144fb0e13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1193707555
 GameObject:
   m_ObjectHideFlags: 0
@@ -7002,6 +7015,7 @@ GameObject:
   - component: {fileID: 1839172668}
   - component: {fileID: 1839172667}
   - component: {fileID: 1839172666}
+  - component: {fileID: 1839172669}
   m_Layer: 5
   m_Name: InputField (TMP)
   m_TagString: Untagged
@@ -7166,6 +7180,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1839172664}
   m_CullTransparentMesh: 1
+--- !u!114 &1839172669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1839172664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 408f1a30fe8bce346838c12144fb0e13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1935032816
 GameObject:
   m_ObjectHideFlags: 0
@@ -7178,6 +7204,7 @@ GameObject:
   - component: {fileID: 1935032820}
   - component: {fileID: 1935032819}
   - component: {fileID: 1935032818}
+  - component: {fileID: 1935032821}
   m_Layer: 5
   m_Name: InputField create room
   m_TagString: Untagged
@@ -7342,6 +7369,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1935032816}
   m_CullTransparentMesh: 1
+--- !u!114 &1935032821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935032816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 408f1a30fe8bce346838c12144fb0e13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1954812951
 GameObject:
   m_ObjectHideFlags: 0
