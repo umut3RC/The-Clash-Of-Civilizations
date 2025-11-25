@@ -174,6 +174,14 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public void RPC_StartArmy()
 	{
 		collidersParent.SetActive(true);
+
+		int targetLayer = gameObject.layer;
+		collidersParent.layer = targetLayer;
+		foreach (Transform child in collidersParent.transform)
+		{
+			child.gameObject.layer = targetLayer;
+		}
+
 		isReady = true;
 		rb.useGravity = true;
 		canAttack = false;

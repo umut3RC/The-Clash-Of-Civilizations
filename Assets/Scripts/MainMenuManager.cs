@@ -20,10 +20,9 @@ public class MainMenuManager : MonoBehaviour
 
 	void Start()
 	{
-		if (PhotonNetwork.IsConnectedAndReady)
+		if (PhotonNetwork.IsConnectedAndReady || !string.IsNullOrWhiteSpace(PhotonNetwork.NickName))
 		{
-			ClosePanels();
-			menuPanel.SetActive(true);
+			EnterMainMenu();
 		}
 		else
 		{
@@ -42,8 +41,11 @@ public class MainMenuManager : MonoBehaviour
 
 	public void StartPanels()
 	{
-		ClosePanels();
-		userNamePanel.SetActive(true);
+		if (!PhotonNetwork.IsConnectedAndReady || string.IsNullOrWhiteSpace(PhotonNetwork.NickName))
+		{
+			ClosePanels();
+			userNamePanel.SetActive(true);
+		}
 	}
 	public void SelectEmpireMenu()
 	{
@@ -57,13 +59,13 @@ public class MainMenuManager : MonoBehaviour
 	}
 	public void EnterMainMenu()
 	{
-			ClosePanels();
-			menuPanel.SetActive(true);
+		ClosePanels();
+		menuPanel.SetActive(true);
 	}
 	public void OpenReConnectPanel()
 	{
-			ClosePanels();
-			reconnectPanel.SetActive(true);
+		ClosePanels();
+		reconnectPanel.SetActive(true);
 	}
 	public void EnterRoom()
 	{

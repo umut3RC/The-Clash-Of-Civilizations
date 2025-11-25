@@ -157,19 +157,19 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	public IEnumerator LoseGame()
 	{
 		mainPanel.SetActive(true);
-		winnerPanel.SetActive(true);
+		losePanel.SetActive(true);
 
 		int duration = 5;
 
 		while (duration > 0f)
 		{
-			winnerTimer.text = duration.ToString();
+			loseTimer.text = duration.ToString();
 			duration--;
 			yield return new WaitForSeconds(1f);
 		}
-		winnerTimer.text = "0";
+		loseTimer.text = "0";
 		StartCoroutine(ReturnToMenu());
-		winnerPanel.SetActive(false);
+		losePanel.SetActive(false);
 		yield return null;
 	}
 

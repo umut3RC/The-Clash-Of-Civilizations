@@ -2696,6 +2696,7 @@ MonoBehaviour:
   selectionPanel: {fileID: 736568961}
   statusText: {fileID: 1922980152}
   countryButtons: []
+  empirePanel: {fileID: 1350689002}
 --- !u!1 &836868746
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 # The Clash Of Civilizations ⚔️
 
-![Unity](https://img.shields.io/badge/Made%20with-Unity-2022-black?style=flat&logo=unity) ![Platform](https://img.shields.io/badge/Platform-WebGL-blue) ![Status](https://img.shields.io/badge/Status-In%20Development-orange)
+![Unity](https://img.shields.io/badge/Made_with-Unity_2022-black?style=flat&logo=unity) ![Platform](https://img.shields.io/badge/Platform-WebGL-blue) ![Status](https://img.shields.io/badge/Status-In%20Development-orange)
 
 **The Clash Of Civilizations** is a 1v1 online Real-Time Strategy (RTS) game developed with Unity and deployed via GitHub Pages.
 
@@ -17,7 +17,7 @@ The Clash Of Civilizations allows players to manage their economy, build structu
 This repository is organized to separate the source code from the deployment build:
 * **`main` Branch:** Contains the Unity **source project**.
     * *Note:* Paid assets and copyrighted packages have been excluded from this branch to comply with licensing agreements.
-* **`gh-pages` Branch:** Contains the **WebGL build** files used for the live demo.
+* **`webgl-game-export` Branch:** Contains the **WebGL build** files used for the live demo.
 
 ### Game Features
 * **1v1 Online Multiplayer:** Real-time battles powered by Photon.
@@ -45,7 +45,7 @@ This project currently runs on the **Photon Free Tier**.
 Bu depo, kaynak kodları ve oynanabilir oyun dosyalarını ayırmak için şu şekilde yapılandırılmıştır:
 * **`main` Branch'i:** Unity **kaynak kodlarını (source files)** içerir.
     * *Not:* Projede kullanılan ücretli market assetleri ve telifli paketler, lisans hakları nedeniyle bu branch'ten çıkarılmıştır.
-* **`gh-pages` Branch'i:** GitHub Pages üzerinde çalışan **WebGL oyun çıktılarını (Build)** içerir.
+* **`webgl-game-export` Branch'i:** GitHub Pages üzerinde çalışan **WebGL oyun çıktılarını (Build)** içerir.
 
 ### Özellikler
 * **1v1 Online Savaş:** Photon altyapısı ile anlık çok oyunculu deneyim.
@@ -69,7 +69,6 @@ Oyun şu anda **Photon Ücretsiz Sürüm** altyapısını kullanmaktadır.
 * **Networking:** Photon Unity Networking 2 (PUN 2)
 * **Platform:** WebGL
 * **Hosting:** GitHub Pages
-* **Input Support:** WebGLInput (Mobile Keyboard Support)
 
 ---
-*Developed by Umut*
+*Developed by umut3RC*

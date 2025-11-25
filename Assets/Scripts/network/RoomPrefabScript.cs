@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class RoomPrefabScript : MonoBehaviour
 {
@@ -22,6 +23,10 @@ public class RoomPrefabScript : MonoBehaviour
 		if (lobbyManager != null)
 		{
 			lobbyManager.JoinRoomWithName(roomNameText.text);
+			if (EventSystem.current != null)
+			{
+				EventSystem.current.SetSelectedGameObject(null);
+			}
 		}
 	}
 

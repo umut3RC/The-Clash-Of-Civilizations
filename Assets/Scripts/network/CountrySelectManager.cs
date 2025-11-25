@@ -11,6 +11,7 @@ public class CountrySelectManager : MonoBehaviourPunCallbacks
 	public GameObject selectionPanel; // Kapatılacak olan Ülke Seçim Paneli
 	public TextMeshProUGUI statusText;           // "Rakip Bekleniyor" yazacak text (Opsiyonel)
 	public Button[] countryButtons;   // Tıklandığında kilitlenecek butonlar
+	public GameObject empirePanel;
 
 	// Oyuncunun hazır olup olmadığını takip eden anahtar kelime
 	private const string PLAYER_READY_PROP = "IsReady";
@@ -19,7 +20,7 @@ public class CountrySelectManager : MonoBehaviourPunCallbacks
 	void Start()
 	{
 		// Panel açık başladığında durum metnini sıfırla
-		if (statusText != null) statusText.text = "Lütfen bir ülke seçiniz.";
+		// if (statusText != null) statusText.text = "Lütfen bir ülke seçiniz.";
 	}
 
 	// --- UI BUTONLARINDAN ÇAĞRILACAK FONKSİYON ---
@@ -116,6 +117,7 @@ public class CountrySelectManager : MonoBehaviourPunCallbacks
 		if (selectionPanel != null)
 		{
 			selectionPanel.SetActive(false);
+			empirePanel.SetActive(false);
 		}
 
 		// (İsteğe bağlı) Eğer burada başka başlatma kodlarınız varsa çağırabilirsiniz.

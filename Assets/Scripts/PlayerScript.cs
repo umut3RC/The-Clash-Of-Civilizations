@@ -367,11 +367,18 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void RPC_FinishGame(int loserActorNumber)
 	{
+
 		if (gameManager == null)
 		{
-			Debug.Log("Missing manager!");
+			gameManager = FindObjectOfType<GameRoomConnectionManager>();
+		}
+
+		if (gameManager == null)
+		{
+			Debug.Log("Missing manager! UI güncellenemedi.");
 			return;
 		}
+
 		if (PhotonNetwork.LocalPlayer.ActorNumber == loserActorNumber)
 		{
 			StartCoroutine(gameManager.LoseGame());
@@ -381,5 +388,5 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			StartCoroutine(gameManager.WinGame());
 		}
 	}
-	
+
 }
