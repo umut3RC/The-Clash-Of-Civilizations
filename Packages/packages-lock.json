@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.github.kou-yeung": {
+      "version": "https://github.com/kou-yeung/WebGLInput.git?path=Assets/WebGLSupport",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0~"
+      },
+      "hash": "ddb2db10aa17cf7f9756bca375609b38895f1f55"
+    },
     "com.unity.ai.navigation": {
       "version": "1.1.6",
       "depth": 0,
