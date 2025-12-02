@@ -1,62 +1,208 @@
-using System.Collections;
-using System.Collections.Generic;
+// using System.Collections;
+// using System.Collections.Generic;
+// using UnityEngine;
+// using TMPro;
+// using UnityEngine.UI;
+// using Photon.Pun;
+
+// public class TowerScript : MonoBehaviourPunCallbacks
+// {
+// 	public int index = -1;
+// 	public int health = 500;
+// 	public Transform hpBox;
+// 	private int maxHP;
+
+// 	void Start()
+// 	{
+// 		maxHP = health;
+// 		UpdateHealthBar();
+// 	}
+
+// 	public void DecreaseHp(int damage)
+// 	{
+// 		health -= damage;
+// 		UpdateHealthBar();
+
+// 		if (health <= 0)
+// 		{
+// 			DestroyTower();
+// 		}
+// 	}
+
+// 	void UpdateHealthBar()
+// 	{
+// 		float ratio = (float)health / (float)maxHP;
+
+// 		if (hpBox != null)
+// 		{
+// 			Vector3 scale = hpBox.localScale;
+// 			scale.y = ratio * 5f;
+// 			hpBox.localScale = scale;
+// 		}
+// 	}
+
+// 	void DestroyTower()
+// 	{
+// 		if (PhotonNetwork.IsMasterClient)
+// 		{
+// 			PhotonView playerView = GetComponentInParent<PlayerScript>().photonView;
+// 			if (playerView != null)
+// 			{
+// 				playerView.RPC("RPC_DestroyTowerByIndex", RpcTarget.All, index);
+// 			}
+// 		}
+// 	}
+// 	[PunRPC]
+// 	public void RPC_DestroyTower()
+// 	{
+// 		DestroyTowerLocally();
+// 	}
+// 	public void DestroyTowerLocally()
+// 	{
+// 		Destroy(gameObject);
+// 	}
+
+// 	public int GetMyID()
+// 	{
+// 		return index;
+// 	}
+// }
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 using Photon.Pun;
 
-public class TowerScript : MonoBehaviourPunCallbacks
+// ARTIK ARMY SCRIPT'TEN MİRAS ALIYOR
+public class TowerScript : ArmyScript
 {
-	public int index = -1;
-	public int health = 500;
-	public Transform hpBox;
-	private int maxHP;
+	[Header("Tower Specific")]
+	public int index = -1; // Manager'daki bina indexi
+	public Transform hpBox; // Can barı görseli
 
-	void Start()
+	// ArmyScript'teki 'maxHealth' serializefield olduğu için onu inspector'dan ayarla.
+	// 'health' değişkeni ArmyScript'ten geliyor.
+
+	public override void Start()
 	{
-		maxHP = health;
+		// ArmyScript'in Start'ını çağır (Değişkenleri tanımlasın)
+		base.Start();
+		// Kuleler doğuştan hazırdır, spawn animasyonu beklemez
+		// ArmyScript'teki 'isReady' değişkenini protected yapman gerekebilir 
+		// veya ArmyScript'te isReady = true olarak başlatabilirsin.
+		// Eğer ArmyScript'te 'isReady' private ise onu 'protected' yap.
+
+		// Kulelerin otomatik hedef belirlemesi için Tag ayarı:
+		// Eğer kule bana aitse, düşman tag'ini ayarla
+		// if (photonView.IsMine)
+		// {
+		// 	// Basit mantık: Ben Army1 isem düşman Army2'dir.
+		// 	// Bu tag'i kendi oyun mantığına göre string olarak ver.
+		// 	// if (gameObject.layer == LayerMask.NameToLayer("Army1"))
+		// 	// 	SetEnemyTag("Army2");
+		// 	// else
+		// 	// 	SetEnemyTag("Army1");
+		// }
 		UpdateHealthBar();
 	}
 
-	public void DecreaseHp(int damage)
+	// EN ÖNEMLİ KISIM: Hareket etmemesi için FixedUpdate'i eziyoruz
+	public override void FixedUpdate()
 	{
-		health -= damage;
+		if (!photonView.IsMine) return;
+
+		// Hedef yoksa ara
+		if (target == null)
+		{
+			UpdateTarget();
+		}
+
+		// Saldırı Mantığı (Hareket kodu YOK)
+		if (canAttack && target != null)
+		{
+			if (attackTimer >= attackSpeed)
+			{
+				attackTimer = 0f;
+				AttackTarget(); // ArmyScript'teki saldırı fonksiyonunu kullanır
+			}
+			else
+			{
+				attackTimer += Time.deltaTime;
+			}
+		}
+		else if (target != null)
+		{
+			// Hedef menzilden çıktıysa veya saldırılamazsa
+			// Kule olduğu için kovalama yapmıyoruz.
+			// Sadece menzil kontrolü yapabiliriz.
+			float dist = Vector3.Distance(transform.position, target.position);
+			// Menzil dışıysa hedefi bırak
+			if (dist > targetDistance)
+			{
+				target = null;
+				canAttack = false;
+			}
+			else
+			{
+				// Menzildeyse saldırıya hazırlan
+				canAttack = true;
+			}
+		}
+	}
+	public override void TurnToTarget()
+	{
+	}
+
+	// ArmyScript'teki TakeDamage fonksiyonu RPC ile çağrıldığında çalışır.
+	// Ancak Tower'ın HP barını güncellemesi lazım.
+	// ArmyScript'teki TakeDamage fonksiyonunu da 'virtual' yapmalısın!
+	[PunRPC]
+	public override void TakeDamage(int damage)
+	{
+		// Önce ArmyScript'in can azaltma işlemini yap
+		base.TakeDamage(damage);
+
+		// Sonra Kule'ye özel HP barını güncelle
 		UpdateHealthBar();
-
-		if (health <= 0)
-		{
-			DestroyTower();
-		}
 	}
 
-	void UpdateHealthBar()
-	{
-		float ratio = (float)health / (float)maxHP;
-
-		if (hpBox != null)
-		{
-			Vector3 scale = hpBox.localScale;
-			scale.y = ratio * 5f;
-			hpBox.localScale = scale;
-		}
-	}
-
-	void DestroyTower()
+	// ArmyScript'teki Die fonksiyonu PhotonNetwork.Destroy yapar.
+	// Ama kuleler Manager listesinden silinmeli. O yüzden eziyoruz.
+	public override void Die()
 	{
 		if (PhotonNetwork.IsMasterClient)
 		{
 			PhotonView playerView = GetComponentInParent<PlayerScript>().photonView;
 			if (playerView != null)
 			{
+				// Manager üzerindeki silme fonksiyonunu çağır
 				playerView.RPC("RPC_DestroyTowerByIndex", RpcTarget.All, index);
 			}
 		}
 	}
-	[PunRPC]
-	public void RPC_DestroyTower()
+
+	// Kuleye özel can barı güncelleme
+	void UpdateHealthBar()
 	{
-		DestroyTowerLocally();
+		// Güvenlik: Sıfıra bölünme hatasını engelle
+		if (maxHealth <= 0) return;
+
+		// ArmyScript'ten miras alınan 'health' ve 'maxHealth' kullanılıyor.
+		// İkisi de int olduğu için (float) dönüşümü ŞARTTIR, yoksa sonuç hep 0 çıkar.
+		float ratio = (float)health / (float)maxHealth;
+
+		if (hpBox != null)
+		{
+			Vector3 scale = hpBox.localScale;
+
+			// Orijinal mantığınızı koruyoruz (Yükseklik 5 birim üzerinden oranlanıyor)
+			scale.y = ratio * 5f;
+
+			hpBox.localScale = scale;
+
+			// NOT: Daha önceki konuşmamızda bahsettiğimiz pivot sorunu varsa (bar yere batıyorsa),
+			// pozisyon düzeltme kodunu da buraya ekleyebilirsin. Yoksa bu hali yeterlidir.
+		}
 	}
+
+	// Manager tarafından çağrılan yerel yok etme
 	public void DestroyTowerLocally()
 	{
 		Destroy(gameObject);

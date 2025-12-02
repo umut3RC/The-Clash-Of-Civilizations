@@ -7,12 +7,20 @@ public class WizardSupportScript : ArmyScript
 	public GameObject healAuraObject;
 	public float auraDuration = 5.0f;
 	public float auraCooldown = 5.0f;
-	void Start()
+
+	// DEĞİŞİKLİK BURADA: 'override' kelimesini ekledik
+	public override void Start()
 	{
+		// 1. ÖNCE ArmyScript'in (Babanın) Start fonksiyonunu çalıştır.
+		// Bunu yazmazsan büyücün hareket edemez, canı dolmaz, animasyon çalışmaz.
+		base.Start();
+
+		// 2. SONRA Büyücüye özel (Aura) kodları çalıştır.
 		if (healAuraObject != null)
 		{
 			healAuraObject.SetActive(false);
 		}
+
 		if (photonView.IsMine)
 		{
 			StartCoroutine(AuraToggleCoroutine());

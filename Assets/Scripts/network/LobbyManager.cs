@@ -27,6 +27,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	void Start()
 	{
 		PhotonNetwork.ConnectUsingSettings();
+		PhotonNetwork.KeepAliveInBackground = 60000f;
 		if (!PhotonNetwork.IsConnectedAndReady)
 		{
 			menuManager.PrepareLoadStatus();
@@ -34,7 +35,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	}
 	void Update()
 	{
-		if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom)
+		if (PhotonNetwork.IsConnectedAndReady)
 		{
 			// Not: Bu sizin 20 CCU global limitiniz DEĞİL, 
 			// sadece bu bölgedeki (lobi+odalar) oyuncu sayısıdır.
@@ -130,7 +131,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 		if (!string.IsNullOrEmpty(roomNameInput.text) && roomNameInput.text.Length < 10)
 		{
 			RoomOptions roomOptions = new RoomOptions() { MaxPlayers = 2 };
-			PhotonNetwork.CreateRoom(roomNameInput.text, roomOptions, TypedLobby.Default);
+			PhotonNetwork.JoinOrCreateRoom(roomNameInput.text, roomOptions, TypedLobby.Default);
 			menuManager.ClosePanels();
 		}
 	}
@@ -143,6 +144,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	{
 		PhotonNetwork.JoinRoom(roomName);
 		menuManager.ClosePanels();
+	}
+	public void ExitRoom()
+	{
+		PhotonNetwork.LeaveRoom();
+	}
+	public override void OnLeftRoom()
+	{
+		Debug.Log("Odadan çıkıldı");
+		menuManager.EnterMainMenu();
 	}
 	public override void OnPlayerEnteredRoom(Player newPlayer)
 	{
@@ -208,7 +218,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 			while (timer > 0)
 			{
 				timer -= Time.deltaTime;
-				reconnectTimerText.text = timer.ToString();
+				reconnectTimerText.text = ((int)timer).ToString();
 				yield return null;
 			}
 

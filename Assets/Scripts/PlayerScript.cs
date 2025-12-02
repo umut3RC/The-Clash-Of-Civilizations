@@ -41,14 +41,14 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		{
 			return;
 		}
-		SetCoin(1000);
-		SetHealth(100);
+		// SetCoin(1000);
+		// SetHealth(100);
 		panelInfoTexts[0].text = PhotonNetwork.NickName;
 		panelInfoTexts[3].text = PhotonNetwork.NickName;
 		if (!PhotonNetwork.IsMasterClient)
 		{
 			myVillageCamera = myVillageCamera_other;
-			villageGround.transform.position += new Vector3(55, 0, 0);
+			villageGround.transform.position += new Vector3(54, 0, 0);
 		}
 		else
 		{
@@ -58,6 +58,75 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		if (PhotonNetwork.IsConnectedAndReady)
 		{
 			PrepareMine();
+		}
+	}
+	// void Start()
+	// {
+	// 	if (!photonView.IsMine)
+	// 	{
+	// 		return;
+	// 	}
+
+	// 	// --- 1. TAKIM VE KAMERA AYARLARI ---
+	// 	if (PhotonNetwork.IsMasterClient)
+	// 	{
+	// 		armyLayer = "Army1"; // Master Client her zaman Army1
+	// 		myVillageCamera = myVillageCamera_origin;
+	// 	}
+	// 	else
+	// 	{
+	// 		armyLayer = "Army2"; // Misafir her zaman Army2
+	// 		myVillageCamera = myVillageCamera_other;
+	// 		villageGround.transform.position += new Vector3(55, 0, 0);
+
+	// 		// Eğer misafirsen raycast zeminini de güncelle (önceki kodlardan)
+	// 		raycastLayer = LayerMask.GetMask("Ground 2");
+	// 	}
+
+	// 	// --- 2. KATMAN (LAYER) SENKRONİZASYONU ---
+	// 	// Bu RPC fonksiyonun içinde "SetLayerRecursively" olduğunu varsayıyoruz.
+	// 	// Böylece Player objesi ve altındaki TÜM binalar doğru takıma geçer.
+	// 	photonView.RPC("RPC_SetLayerAndTag", RpcTarget.AllBuffered, armyLayer);
+
+	// 	// --- 3. BİNALARIN (KULELERİN) BAŞLATILMASI ---
+	// 	InitializeBuildings();
+
+	// 	// --- 4. UI VE DİĞER AYARLAR ---
+	// 	// SetCoin(1000); // İstersen açabilirsin
+	// 	// SetHealth(100); // İstersen açabilirsin
+	// 	panelInfoTexts[0].text = PhotonNetwork.NickName;
+	// 	panelInfoTexts[3].text = PhotonNetwork.NickName;
+
+	// 	spawnTargetVisulazer.SetActive(false);
+
+	// 	if (PhotonNetwork.IsConnectedAndReady)
+	// 	{
+	// 		PrepareMine();
+	// 	}
+	// }
+
+	// Binaları (Kuleleri) savaşa hazırlayan yeni fonksiyon
+	void InitializeBuildings()
+	{
+		// Ben Army1 isem düşman Army2'dir (veya tam tersi)
+		string myEnemyTag = (armyLayer == "Army1") ? "Army2" : "Army1";
+
+		foreach (GameObject building in myBuildings)
+		{
+			if (building == null) continue;
+
+			// Binada TowerScript var mı? (Tüm saldırı yapan binalarda olmalı)
+			TowerScript tower = building.GetComponent<TowerScript>();
+
+			if (tower != null)
+			{
+				// Kuleye düşmanın kim olduğunu söyle
+				// (TowerScript artık ArmyScript'ten miras aldığı için bu fonksiyona sahip)
+				tower.SetEnemyTag(myEnemyTag);
+			}
+
+			// Not: Binaların Layer'ını ayarlamaya gerek yok, 
+			// yukarıdaki RPC_SetLayerAndTag tüm child objeleri (binaları) zaten ayarladı.
 		}
 	}
 
@@ -93,6 +162,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			}
 		}
 	}
+
 
 	public void IncreaseCoin()
 	{
@@ -159,11 +229,6 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	}
 	private void PrepareMine()
 	{
-		if (photonView.IsMine)
-		{
-			myCamera.SetActive(true);
-			myCanvas.SetActive(true);
-		}
 		if (!PhotonNetwork.IsMasterClient)
 		{
 			transform.rotation *= Quaternion.Euler(0, 180f, 0);
@@ -171,6 +236,13 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 
 			raycastLayer = LayerMask.GetMask("Ground 2");
 			armyLayer = "Army2";
+		}
+		if (photonView.IsMine)
+		{
+			armyLayer = "Army1";
+			myCamera.SetActive(true);
+			myCanvas.SetActive(true);
+			InitializeBuildings();
 		}
 		isReady = true;
 	}
@@ -354,13 +426,12 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void RPC_DealDamageToTower(int towerIndex, int damage)
 	{
-		// ... (Bu kısım aynen kalabilir) ...
 		if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
 
 		TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
 		if (targetTower != null)
 		{
-			targetTower.DecreaseHp(damage);
+			targetTower.TakeDamage(damage);
 		}
 	}
 

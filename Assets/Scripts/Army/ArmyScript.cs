@@ -18,23 +18,26 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public GameObject collidersParent;
 	public string enemyTag = "";
 	public Rigidbody rb;
-	public Animator animator;
+	protected Animator animator;
 	// bool canMove = true;
 	public bool canAttack = false;
 	public float attackTimer = 0f;
 	PhotonView enemyPlayerPv = null;
 	bool isReady = false;
-	[SerializeField] private int maxHealth = 25;
-	private int health = 25;
-	void Start()
+	[SerializeField]
+	protected int maxHealth = 25;
+	protected int health = 25;
+	public virtual void Start() // <-- virtual eklendi
 	{
 		rb = GetComponent<Rigidbody>();
-		rb.useGravity = false;
+		// Kulelerde Rigidbody olmayabilir, null kontrolü ekleyelim
+		if (rb != null) rb.useGravity = false;
+
 		animator = GetComponent<Animator>();
 		health = maxHealth;
 	}
 
-	void FixedUpdate()
+	public virtual void FixedUpdate() // <-- virtual eklendi
 	{
 		if (!photonView.IsMine || !isReady)
 			return;
@@ -57,7 +60,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 			if (distance > targetDistance)
 			{
-				animator.SetTrigger("walk");
+				AnimationTrigger("walk");
+				// if (animator != null) animator.SetTrigger("walk");
 				rb.MovePosition(transform.position + flatDirection * moveSpeed * Time.fixedDeltaTime);
 				canAttack = false;
 			}
@@ -66,7 +70,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 				rb.velocity = Vector3.zero;
 				canAttack = true;
 				attackTimer = 0f;
-				animator.SetTrigger("attack");
+				// if (animator != null) animator.SetTrigger("attack");
+				AnimationTrigger("attack");
 			}
 		}
 		else if (canAttack && target != null)
@@ -110,6 +115,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		}
 		if (other.transform.root.CompareTag(enemyTag))
 		{
+			// Debug.Log(gameObject.name + " * " + gameObject.tag + " >-> " + other.transform.root.gameObject.name);
 			Transform enemy = other.transform.root;
 			if (!enemiesInRange.Contains(enemy))
 			{
@@ -117,6 +123,10 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			}
 			UpdateTarget();
 		}
+		// if (other.gameObject.tag != "Ground")
+		// {
+		// 	Debug.Log(gameObject.name + " * " + gameObject.tag + " >-> " + other.transform.root.gameObject.name);
+		// }
 	}
 	private void OnTriggerExit(Collider other)
 	{
@@ -154,7 +164,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		}
 		if (enemiesInRange.Count < 1 || closestEnemy == null)
 		{
-			closestEnemy = GetBuildingTarget();
+			if (gameObject.tag != "Tower")
+				closestEnemy = GetBuildingTarget();
 		}
 
 		//for buildings
@@ -167,6 +178,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 	public void SetEnemyTag(string t)
 	{
+		if (photonView.IsMine)
+			Debug.Log(gameObject.name + " enemy-> " + t);
 		enemyTag = t;
 	}
 
@@ -190,8 +203,50 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public void RPC_SetLayerAndTag(string layerName)
 	{
 		gameObject.layer = LayerMask.NameToLayer(layerName);
-		gameObject.tag = layerName;
+		if (gameObject.tag != "Tower")
+			gameObject.tag = layerName;
 	}
+	// Transform GetBuildingTarget()
+	// {
+	// 	Transform _nearestTarget = null;
+	// 	float closestDistance = Mathf.Infinity;
+
+	// 	GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+	// 	foreach (GameObject player in players)
+	// 	{
+	// 		PhotonView pv = player.GetComponent<PhotonView>();
+
+	// 		if (pv != null && !pv.IsMine)
+	// 		{
+	// 			Transform castle = player.transform.Find("Castle");
+	// 			if (castle == null) continue;
+
+	// 			List<Transform> targets = new List<Transform>();
+	// 			targets.Add(castle);
+	// 			foreach (Transform child in castle)
+	// 			{
+	// 				if (child.gameObject.CompareTag("Tower"))
+	// 				{
+	// 					targets.Add(child);
+	// 				}
+	// 			}
+
+	// 			foreach (Transform t in targets)
+	// 			{
+	// 				if (t == null) continue;
+
+	// 				float distance = Vector3.Distance(transform.position, t.position);
+	// 				if (distance < closestDistance)
+	// 				{
+	// 					closestDistance = distance;
+	// 					_nearestTarget = t;
+	// 				}
+	// 			}
+	// 			break;
+	// 		}
+	// 	}
+	// 	return _nearestTarget;
+	// }
 	Transform GetBuildingTarget()
 	{
 		Transform _nearestTarget = null;
@@ -204,28 +259,19 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 			if (pv != null && !pv.IsMine)
 			{
-				Transform castle = player.transform.Find("Castle");
-				if (castle == null) continue;
-
-				List<Transform> targets = new List<Transform>();
-				targets.Add(castle);
-				foreach (Transform child in castle)
+				foreach (Transform child in player.transform)
 				{
 					if (child.gameObject.CompareTag("Tower"))
 					{
-						targets.Add(child);
-					}
-				}
-
-				foreach (Transform t in targets)
-				{
-					if (t == null) continue;
-
-					float distance = Vector3.Distance(transform.position, t.position);
-					if (distance < closestDistance)
-					{
-						closestDistance = distance;
-						_nearestTarget = t;
+						if (child.gameObject.activeSelf)
+						{
+							float distance = Vector3.Distance(transform.position, child.position);
+							if (distance < closestDistance)
+							{
+								closestDistance = distance;
+								_nearestTarget = child;
+							}
+						}
 					}
 				}
 				break;
@@ -234,7 +280,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		return _nearestTarget;
 	}
 	[PunRPC]
-	public void TakeDamage(int damage)
+	public virtual void TakeDamage(int damage)
 	{
 		health -= damage;
 		// animator.SetTrigger("damage");
@@ -255,7 +301,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		// UpdateHealthBar(health, maxHealth);
 	}
 
-	void Die()
+	public virtual void Die() // <-- virtual eklendi
 	{
 		if (photonView.IsMine)
 		{
@@ -299,8 +345,10 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 					if (enemyPlayerPv != null)
 					{
-						animator.SetTrigger("attack");
+						// if (animator != null) animator.SetTrigger("attack");
+						AnimationTrigger("attack");
 						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.All, towerId, damage);
+						Debug.Log(gameObject.name + " -> " + target.gameObject.name);
 						TurnToTarget();
 					}
 				}
@@ -310,7 +358,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 				ArmyScript enemy = target.GetComponent<ArmyScript>();
 				if (enemy != null)
 				{
-					animator.SetTrigger("attack");
+					// if (animator != null) animator.SetTrigger("attack");
+					AnimationTrigger("attack");
 					enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
 					TurnToTarget();
 				}
@@ -321,7 +370,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			}
 		}
 	}
-	void TurnToTarget()
+	public virtual void TurnToTarget()
 	{
 		Vector3 direction = target.position - transform.position;
 
@@ -331,6 +380,18 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		{
 			Quaternion targetRotation = Quaternion.LookRotation(flatDirection);
 			transform.rotation = targetRotation;
+		}
+	}
+	bool AnimationTrigger(string triggerName)
+	{
+		if (animator != null)
+		{
+			animator.SetTrigger(triggerName);
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 }
