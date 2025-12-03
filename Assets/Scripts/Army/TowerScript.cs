@@ -93,12 +93,12 @@ public class TowerScript : ArmyScript
 		// Eğer kule bana aitse, düşman tag'ini ayarla
 		// if (photonView.IsMine)
 		// {
-		// 	// Basit mantık: Ben Army1 isem düşman Army2'dir.
-		// 	// Bu tag'i kendi oyun mantığına göre string olarak ver.
-		// 	// if (gameObject.layer == LayerMask.NameToLayer("Army1"))
-		// 	// 	SetEnemyTag("Army2");
-		// 	// else
-		// 	// 	SetEnemyTag("Army1");
+			// Basit mantık: Ben Army1 isem düşman Army2'dir.
+			// Bu tag'i kendi oyun mantığına göre string olarak ver.
+			// if (gameObject.layer == LayerMask.NameToLayer("Army1"))
+			// 	SetEnemyTag("Army2");
+			// else
+			// 	SetEnemyTag("Army1");
 		// }
 		UpdateHealthBar();
 	}

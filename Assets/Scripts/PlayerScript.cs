@@ -236,10 +236,14 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 
 			raycastLayer = LayerMask.GetMask("Ground 2");
 			armyLayer = "Army2";
+			Debug.Log(PhotonNetwork.NickName + " <> " + armyLayer);
+		}
+		else
+		{
+			armyLayer = "Army1";
 		}
 		if (photonView.IsMine)
 		{
-			armyLayer = "Army1";
 			myCamera.SetActive(true);
 			myCanvas.SetActive(true);
 			InitializeBuildings();

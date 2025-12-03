@@ -109,7 +109,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	}
 	private void OnTriggerEnter(Collider other)
 	{
-		if (!photonView.IsMine || enemyTag == null)
+		if (!photonView.IsMine || string.IsNullOrEmpty(enemyTag))
 		{
 			return;
 		}
@@ -179,7 +179,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public void SetEnemyTag(string t)
 	{
 		if (photonView.IsMine)
-			Debug.Log(gameObject.name + " enemy-> " + t);
+			Debug.Log(gameObject.name + " -T-> " + t);
 		enemyTag = t;
 	}
 
@@ -205,6 +205,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		gameObject.layer = LayerMask.NameToLayer(layerName);
 		if (gameObject.tag != "Tower")
 			gameObject.tag = layerName;
+		Debug.Log("Changing layer-tag: " + layerName);
 	}
 	// Transform GetBuildingTarget()
 	// {
@@ -348,7 +349,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 						// if (animator != null) animator.SetTrigger("attack");
 						AnimationTrigger("attack");
 						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.All, towerId, damage);
-						Debug.Log(gameObject.name + " -> " + target.gameObject.name);
+						// Debug.Log(gameObject.name + " -> " + target.gameObject.name);
 						TurnToTarget();
 					}
 				}
