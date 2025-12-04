@@ -21,6 +21,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	public GameObject selectEmpirePanel;
 
 	private bool isGamePaused = false;
+	private bool isFinish = false;
 	private float pauseDuration = 20f;
 	private float pauseTimer = 0f;
 
@@ -29,8 +30,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 		if (PhotonNetwork.IsConnectedAndReady)
 		{
 			SpawnAndSetParent();
-			mainPanel.SetActive(true);
-			selectEmpirePanel.SetActive(true);
+			OpenPanel(selectEmpirePanel);
 		}
 	}
 	void Awake()
@@ -76,7 +76,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			isGamePaused = true;
 			pauseTimer = pauseDuration;
 			Time.timeScale = 0f;
-			pausePanel.SetActive(true);
+			OpenPanel(pausePanel);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	{
 		isGamePaused = false;
 		Time.timeScale = 1f;
-		pausePanel.SetActive(true);
+		// pausePanel.SetActive(true);
 	}
 
 	IEnumerator ReturnToMenu()
@@ -138,9 +138,10 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	public IEnumerator WinGame()
 	{
-		mainPanel.SetActive(true);
-		winnerPanel.SetActive(true);
-
+		if (isFinish)
+			yield break;
+		OpenPanel(winnerPanel);
+		isFinish = true;
 		int duration = 5;
 
 		while (duration > 0f)
@@ -156,9 +157,10 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	}
 	public IEnumerator LoseGame()
 	{
-		mainPanel.SetActive(true);
-		losePanel.SetActive(true);
-
+		if (isFinish)
+			yield break;
+		OpenPanel(losePanel);
+		isFinish = true;
 		int duration = 5;
 
 		while (duration > 0f)
@@ -176,6 +178,9 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	public override void OnLeftRoom()
 	{
+		if (isFinish)
+			return;
+		isFinish = true;
 		SceneManager.LoadScene("MainMenu");
 	}
 
@@ -183,7 +188,9 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	{
 		Debug.Log($"Oyuncu ayrıldı: {otherPlayer.NickName}");
 
-		// Kalan oyuncuyu bul
+		if (isFinish)
+			return;
+		isFinish = true;
 		if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
 		{
 			Player winner = PhotonNetwork.LocalPlayer;
@@ -191,6 +198,19 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 			StartCoroutine(WinGame());
 		}
+	}
+
+	public void OpenPanel(GameObject targetPanel)
+	{
+		mainPanel.SetActive(true);
+		pausePanel.SetActive(false);
+		// pauseTimerText;
+		winnerPanel.SetActive(false);
+		// winnerTimer;
+		losePanel.SetActive(false);
+		// loseTimer;
+		selectEmpirePanel.SetActive(false);
+		targetPanel.SetActive(true);
 	}
 }
 

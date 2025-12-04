@@ -69,6 +69,7 @@
 // }
 using UnityEngine;
 using Photon.Pun;
+using System.Collections;
 
 // ARTIK ARMY SCRIPT'TEN MİRAS ALIYOR
 public class TowerScript : ArmyScript
@@ -76,6 +77,10 @@ public class TowerScript : ArmyScript
 	[Header("Tower Specific")]
 	public int index = -1; // Manager'daki bina indexi
 	public Transform hpBox; // Can barı görseli
+	[Header("Attack Visuals")]
+	public Transform firePoint; // Editörden atayacağın namlu ucu
+	public LineRenderer lineRenderer; // Editörden atayacağın çizgi bileşeni
+	public float laserDuration = 0.15f; // Işının ekranda kalma süresi (çok kısa olmalı)
 
 	// ArmyScript'teki 'maxHealth' serializefield olduğu için onu inspector'dan ayarla.
 	// 'health' değişkeni ArmyScript'ten geliyor.
@@ -93,13 +98,16 @@ public class TowerScript : ArmyScript
 		// Eğer kule bana aitse, düşman tag'ini ayarla
 		// if (photonView.IsMine)
 		// {
-			// Basit mantık: Ben Army1 isem düşman Army2'dir.
-			// Bu tag'i kendi oyun mantığına göre string olarak ver.
-			// if (gameObject.layer == LayerMask.NameToLayer("Army1"))
-			// 	SetEnemyTag("Army2");
-			// else
-			// 	SetEnemyTag("Army1");
+		// Basit mantık: Ben Army1 isem düşman Army2'dir.
+		// Bu tag'i kendi oyun mantığına göre string olarak ver.
+		// if (gameObject.layer == LayerMask.NameToLayer("Army1"))
+		// 	SetEnemyTag("Army2");
+		// else
+		// 	SetEnemyTag("Army1");
 		// }
+		if (lineRenderer == null) lineRenderer = GetComponent<LineRenderer>();
+		// Başlangıçta kapalı olduğundan emin ol
+		if (lineRenderer != null) lineRenderer.enabled = false;
 		UpdateHealthBar();
 	}
 
@@ -120,7 +128,7 @@ public class TowerScript : ArmyScript
 			if (attackTimer >= attackSpeed)
 			{
 				attackTimer = 0f;
-				AttackTarget(); // ArmyScript'teki saldırı fonksiyonunu kullanır
+				AttackTarget();
 			}
 			else
 			{
@@ -211,5 +219,48 @@ public class TowerScript : ArmyScript
 	public int GetMyID()
 	{
 		return index;
+	}
+
+	public override void AttackTarget()
+	{
+		if (canAttack && target != null)
+		{
+			// 1. Önce hasarı ver (ArmyScript'teki temel mantık çalışsın)
+			base.AttackTarget();
+
+			// 2. Görsel efekti HERKES İÇİN tetikle
+			// Hedefin o anki pozisyonunu gönderiyoruz (Hedef hareket ederse ışın kaymasın diye)
+			// Hedefin "orta noktasına" (genelde transform.position ayaklarıdır, biraz yukarı) ateş edelim.
+			Vector3 targetCenter = target.position + Vector3.up * 1f;
+			photonView.RPC("RPC_FireVisual", RpcTarget.All, targetCenter);
+		}
+	}
+
+	// Görsel efekti oynatan YENİ RPC
+	[PunRPC]
+	public void RPC_FireVisual(Vector3 targetPosition)
+	{
+		// Eğer gerekli bileşenler yoksa çalıştırma
+		if (lineRenderer == null || firePoint == null) return;
+
+		// Işını açıp kapatan Coroutine'i başlat
+		StartCoroutine(ShowLaserRoutine(targetPosition));
+	}
+
+	// Işını kısa süre gösterip kapatan zamanlayıcı
+	IEnumerator ShowLaserRoutine(Vector3 targetPos)
+	{
+		// Işını aç
+		lineRenderer.enabled = true;
+		// Başlangıç noktası namlu ucu
+		lineRenderer.SetPosition(0, firePoint.position);
+		// Bitiş noktası hedef
+		lineRenderer.SetPosition(1, targetPos);
+
+		// Çok kısa bir süre bekle (saniyenin onda biri kadar)
+		yield return new WaitForSeconds(laserDuration);
+
+		// Işını kapat
+		lineRenderer.enabled = false;
 	}
 }
