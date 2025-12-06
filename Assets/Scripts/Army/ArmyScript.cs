@@ -49,7 +49,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		{
 			Vector3 direction = target.position - transform.position;
 			float distance = direction.magnitude;
-
 			Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z).normalized;
 
 			if (flatDirection != Vector3.zero)
@@ -60,8 +59,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 			if (distance > targetDistance)
 			{
-				AnimationTrigger("walk");
-				// if (animator != null) animator.SetTrigger("walk");
+				if (animator != null) animator.SetBool("isWalking", true);
 				rb.MovePosition(transform.position + flatDirection * moveSpeed * Time.fixedDeltaTime);
 				canAttack = false;
 			}
@@ -70,8 +68,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 				rb.velocity = Vector3.zero;
 				canAttack = true;
 				attackTimer = 0f;
-				// if (animator != null) animator.SetTrigger("attack");
-				AnimationTrigger("attack");
+				if (animator != null) animator.SetBool("isWalking", false);
+				photonView.RPC("RPC_TriggerAnimation", RpcTarget.All, "attack");
 			}
 		}
 		else if (canAttack && target != null)
@@ -323,6 +321,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (canAttack && target != null)
 		{
+			// AnimationTrigger("attack");
+			photonView.RPC("RPC_TriggerAnimation", RpcTarget.All, "attack");
 			if (target.gameObject.CompareTag("Tower"))
 			{
 				TowerScript tower = target.GetComponent<TowerScript>();
@@ -387,6 +387,7 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (animator != null)
 		{
+			animator.ResetTrigger(triggerName);
 			animator.SetTrigger(triggerName);
 			return true;
 		}
@@ -395,5 +396,14 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			return false;
 		}
 	}
+	[PunRPC]
+	public void RPC_TriggerAnimation(string triggerName)
+	{
+		// Bu fonksiyon artık hem sende hem rakipte çalışacak
+		if (animator != null)
+		{
+			animator.ResetTrigger(triggerName); // Takılmayı önlemek için
+			animator.SetTrigger(triggerName);
+		}
+	}
 }
-

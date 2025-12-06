@@ -250,17 +250,18 @@ public class TowerScript : ArmyScript
 	// Işını kısa süre gösterip kapatan zamanlayıcı
 	IEnumerator ShowLaserRoutine(Vector3 targetPos)
 	{
-		// Işını aç
 		lineRenderer.enabled = true;
-		// Başlangıç noktası namlu ucu
-		lineRenderer.SetPosition(0, firePoint.position);
-		// Bitiş noktası hedef
-		lineRenderer.SetPosition(1, targetPos);
 
-		// Çok kısa bir süre bekle (saniyenin onda biri kadar)
+		// --- EKLENECEK KRİTİK SATIR ---
+		// Çizginin 2 noktadan (Başlangıç ve Bitiş) oluştuğunu sisteme bildiriyoruz.
+		lineRenderer.positionCount = 2;
+		// ------------------------------
+
+		lineRenderer.SetPosition(0, firePoint.position); // Index 0 (Başlangıç)
+		lineRenderer.SetPosition(1, targetPos);          // Index 1 (Bitiş)
+
 		yield return new WaitForSeconds(laserDuration);
 
-		// Işını kapat
 		lineRenderer.enabled = false;
 	}
 }

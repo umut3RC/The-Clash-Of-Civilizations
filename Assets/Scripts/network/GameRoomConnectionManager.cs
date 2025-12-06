@@ -138,8 +138,6 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	public IEnumerator WinGame()
 	{
-		if (isFinish)
-			yield break;
 		OpenPanel(winnerPanel);
 		isFinish = true;
 		int duration = 5;
@@ -157,8 +155,6 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	}
 	public IEnumerator LoseGame()
 	{
-		if (isFinish)
-			yield break;
 		OpenPanel(losePanel);
 		isFinish = true;
 		int duration = 5;
@@ -178,9 +174,6 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 
 	public override void OnLeftRoom()
 	{
-		if (isFinish)
-			return;
-		isFinish = true;
 		SceneManager.LoadScene("MainMenu");
 	}
 
@@ -204,12 +197,10 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	{
 		mainPanel.SetActive(true);
 		pausePanel.SetActive(false);
-		// pauseTimerText;
 		winnerPanel.SetActive(false);
-		// winnerTimer;
 		losePanel.SetActive(false);
-		// loseTimer;
 		selectEmpirePanel.SetActive(false);
+
 		targetPanel.SetActive(true);
 	}
 }

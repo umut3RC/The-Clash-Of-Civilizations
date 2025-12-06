@@ -26,8 +26,9 @@ public class MainMenuManager : MonoBehaviour
 		}
 		else
 		{
-			ClosePanels();
-			loadingPanel.SetActive(true);
+			// ClosePanels();
+			// loadingPanel.SetActive(true);
+			OpenPanel(loadingPanel);
 			PrepareLoadStatus();
 		}
 	}
@@ -47,8 +48,9 @@ public class MainMenuManager : MonoBehaviour
 		}
 		else
 		{
-			ClosePanels();
-			userNamePanel.SetActive(true);
+			// ClosePanels();
+			// userNamePanel.SetActive(true);
+			OpenPanel(userNamePanel);
 		}
 	}
 	public void SetPlayerName()
@@ -64,18 +66,21 @@ public class MainMenuManager : MonoBehaviour
 	}
 	public void EnterMainMenu()
 	{
-		ClosePanels();
-		menuPanel.SetActive(true);
+		OpenPanel(menuPanel);
+		// ClosePanels();
+		// menuPanel.SetActive(true);
 	}
 	public void OpenReConnectPanel()
 	{
-		ClosePanels();
-		reconnectPanel.SetActive(true);
+		OpenPanel(reconnectPanel);
+		// ClosePanels();
+		// reconnectPanel.SetActive(true);
 	}
 	public void EnterRoom()
 	{
-		ClosePanels();
-		roomPanel.SetActive(true);
+		OpenPanel(roomPanel);
+		// ClosePanels();
+		// roomPanel.SetActive(true);
 		lobyManager.UpdatePlayerList();
 	}
 
@@ -101,6 +106,15 @@ public class MainMenuManager : MonoBehaviour
 		roomPanel.SetActive(false);
 		loadingPanel.SetActive(false);
 		reconnectPanel.SetActive(false);
+	}
+	public void OpenPanel(GameObject panel)
+	{
+		userNamePanel.SetActive(false);
+		menuPanel.SetActive(false);
+		roomPanel.SetActive(false);
+		loadingPanel.SetActive(false);
+		reconnectPanel.SetActive(false);
+		panel.SetActive(true);
 	}
 
 }
