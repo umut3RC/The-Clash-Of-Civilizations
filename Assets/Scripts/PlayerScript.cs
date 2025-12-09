@@ -41,8 +41,6 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		{
 			return;
 		}
-		// SetCoin(1000);
-		// SetHealth(100);
 		panelInfoTexts[0].text = PhotonNetwork.NickName;
 		panelInfoTexts[3].text = PhotonNetwork.NickName;
 		if (!PhotonNetwork.IsMasterClient)
@@ -60,73 +58,23 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			PrepareMine();
 		}
 	}
-	// void Start()
-	// {
-	// 	if (!photonView.IsMine)
-	// 	{
-	// 		return;
-	// 	}
 
-	// 	// --- 1. TAKIM VE KAMERA AYARLARI ---
-	// 	if (PhotonNetwork.IsMasterClient)
-	// 	{
-	// 		armyLayer = "Army1"; // Master Client her zaman Army1
-	// 		myVillageCamera = myVillageCamera_origin;
-	// 	}
-	// 	else
-	// 	{
-	// 		armyLayer = "Army2"; // Misafir her zaman Army2
-	// 		myVillageCamera = myVillageCamera_other;
-	// 		villageGround.transform.position += new Vector3(55, 0, 0);
-
-	// 		// Eğer misafirsen raycast zeminini de güncelle (önceki kodlardan)
-	// 		raycastLayer = LayerMask.GetMask("Ground 2");
-	// 	}
-
-	// 	// --- 2. KATMAN (LAYER) SENKRONİZASYONU ---
-	// 	// Bu RPC fonksiyonun içinde "SetLayerRecursively" olduğunu varsayıyoruz.
-	// 	// Böylece Player objesi ve altındaki TÜM binalar doğru takıma geçer.
-	// 	photonView.RPC("RPC_SetLayerAndTag", RpcTarget.AllBuffered, armyLayer);
-
-	// 	// --- 3. BİNALARIN (KULELERİN) BAŞLATILMASI ---
-	// 	InitializeBuildings();
-
-	// 	// --- 4. UI VE DİĞER AYARLAR ---
-	// 	// SetCoin(1000); // İstersen açabilirsin
-	// 	// SetHealth(100); // İstersen açabilirsin
-	// 	panelInfoTexts[0].text = PhotonNetwork.NickName;
-	// 	panelInfoTexts[3].text = PhotonNetwork.NickName;
-
-	// 	spawnTargetVisulazer.SetActive(false);
-
-	// 	if (PhotonNetwork.IsConnectedAndReady)
-	// 	{
-	// 		PrepareMine();
-	// 	}
-	// }
-
-	// Binaları (Kuleleri) savaşa hazırlayan yeni fonksiyon
 	void InitializeBuildings()
 	{
-		// Ben Army1 isem düşman Army2'dir (veya tam tersi)
+
 		string myEnemyTag = (armyLayer == "Army1") ? "Army2" : "Army1";
 
 		foreach (GameObject building in myBuildings)
 		{
 			if (building == null) continue;
 
-			// Binada TowerScript var mı? (Tüm saldırı yapan binalarda olmalı)
 			TowerScript tower = building.GetComponent<TowerScript>();
 
 			if (tower != null)
 			{
-				// Kuleye düşmanın kim olduğunu söyle
-				// (TowerScript artık ArmyScript'ten miras aldığı için bu fonksiyona sahip)
 				tower.SetEnemyTag(myEnemyTag);
 			}
 
-			// Not: Binaların Layer'ını ayarlamaya gerek yok, 
-			// yukarıdaki RPC_SetLayerAndTag tüm child objeleri (binaları) zaten ayarladı.
 		}
 	}
 
@@ -371,30 +319,6 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 		}
 	}
 
-	// [PunRPC]
-	// public void RPC_DestroyTowerByIndex(int towerIndex)
-	// {
-	// 	if (towerIndex >= 0 && towerIndex < myBuildings.Length)
-	// 	{
-	// 		TowerScript tower = myBuildings[towerIndex].GetComponent<TowerScript>();
-	// 		if (tower != null)
-	// 		{
-	// 			tower.DestroyTowerLocally();
-	// 		}
-	// 	}
-	// }
-
-	// [PunRPC]
-	// public void RPC_DealDamageToTower(int towerIndex, int damage)
-	// {
-	// 	if (towerIndex < 0 || towerIndex >= myBuildings.Length) return;
-
-	// 	TowerScript targetTower = myBuildings[towerIndex].GetComponent<TowerScript>();
-	// 	if (targetTower != null)
-	// 	{
-	// 		targetTower.DecreaseHp(damage);
-	// 	}
-	// }
 	[PunRPC]
 	public void RPC_DestroyTowerByIndex(int towerIndex)
 	{
@@ -405,25 +329,16 @@ public class PlayerScript : MonoBehaviourPunCallbacks
 			{
 				tower.DestroyTowerLocally();
 			}
-
-			// --- YENİ EKLENEN KISIM BAŞLANGICI ---
-
-			// Eğer yıkılan bina 0. index ise (Ana Bina)
 			if (towerIndex == 0)
 			{
 				Debug.Log("Ana bina yıkıldı! Oyun Bitiyor...");
 
-				// Bu kararı sadece Master Client vermeli ki komut bir kere gönderilsin
 				if (PhotonNetwork.IsMasterClient)
 				{
-					// Kaybeden oyuncunun (bu scriptin sahibinin) ActorNumber'ını herkese gönder
 					int loserActorNumber = photonView.Owner.ActorNumber;
-
-					// RPC_FinishGame fonksiyonunu herkes için çağır
 					photonView.RPC("RPC_FinishGame", RpcTarget.All, loserActorNumber);
 				}
 			}
-			// --- YENİ EKLENEN KISIM SONU ---
 		}
 	}
 

@@ -13,8 +13,6 @@ public class HealAreaScript : MonoBehaviour
 
 	private string ownerTag;
 
-	// --- DEĞİŞİKLİK BURADA ---
-	// Liste artık 'HealthScript' değil, 'ArmyScript' tutacak.
 	private List<ArmyScript> alliesInAura = new List<ArmyScript>();
 
 	private PhotonView wizardPhotonView;
@@ -37,7 +35,6 @@ public class HealAreaScript : MonoBehaviour
 	{
 		alliesInAura.Clear();
 
-		// Yetki (Authority) hala Master Client'da.
 		if (PhotonNetwork.IsMasterClient)
 		{
 			InvokeRepeating(nameof(HealAllies), healInterval, healInterval);
@@ -52,13 +49,10 @@ public class HealAreaScript : MonoBehaviour
 		}
 	}
 
-	// Tetikleyici alana bir collider girdiğinde
 	void OnTriggerEnter(Collider other)
 	{
 		if (other.CompareTag(ownerTag) && other.gameObject != wizardPhotonView.gameObject)
 		{
-			// --- DEĞİŞİKLİK BURADA ---
-			// 'HealthScript' yerine 'ArmyScript' (veya miras alan) aranıyor.
 			ArmyScript ally = other.GetComponent<ArmyScript>();
 
 			if (ally != null && !alliesInAura.Contains(ally))
@@ -68,10 +62,8 @@ public class HealAreaScript : MonoBehaviour
 		}
 	}
 
-	// Tetikleyici alandan bir collider çıktığında
 	void OnTriggerExit(Collider other)
 	{
-		// --- DEĞİŞİKLİK BURADA ---
 		ArmyScript ally = other.GetComponent<ArmyScript>();
 
 		if (ally != null && alliesInAura.Contains(ally))
@@ -79,29 +71,22 @@ public class HealAreaScript : MonoBehaviour
 			alliesInAura.Remove(ally);
 		}
 	}
-
-	// Bu fonksiyon SADECE MASTER CLIENT'DA 1 saniyede bir çalışır
 	private void HealAllies()
 	{
 		for (int i = alliesInAura.Count - 1; i >= 0; i--)
 		{
-			// --- DEĞİŞİKLİK BURADA ---
 			ArmyScript ally = alliesInAura[i];
 
 			if (ally != null)
 			{
-				// Müttefikin 'ArmyScript'i üzerinde 'PhotonView' bileşenini bul
 				PhotonView allyPhotonView = ally.GetComponent<PhotonView>();
 				if (allyPhotonView != null)
 				{
-					// Bulunan 'PhotonView' üzerinden 'RPC_Heal' fonksiyonunu çağır.
-					// Bu fonksiyon artık ArmyScript'te mevcut.
 					allyPhotonView.RPC("RPC_Heal", RpcTarget.All, healAmount);
 				}
 			}
 			else
 			{
-				// Birlik ölmüş veya yok olmuş, listeden çıkar
 				alliesInAura.RemoveAt(i);
 			}
 		}

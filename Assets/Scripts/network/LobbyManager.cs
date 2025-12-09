@@ -37,8 +37,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 	{
 		if (PhotonNetwork.IsConnectedAndReady)
 		{
-			// Not: Bu sizin 20 CCU global limitiniz DEĞİL, 
-			// sadece bu bölgedeki (lobi+odalar) oyuncu sayısıdır.
 			int playersInRegion = PhotonNetwork.CountOfPlayers;
 			playerCountText.text = $"{playersInRegion} / 20";
 		}
@@ -50,8 +48,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
 	public override void OnConnectedToMaster()
 	{
-		// TypedLobby customLobby = new TypedLobby("default", LobbyType.Default);
-		// PhotonNetwork.JoinLobby(customLobby);
 		PhotonNetwork.JoinLobby();
 		menuManager.PrepareLoadStatus();
 		isRetrying = false;
@@ -180,28 +176,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
 	public override void OnDisconnected(DisconnectCause cause)
 	{
-		// Bağlantının kesilme nedenini logla
 		Debug.LogError($"Bağlantı koptu. Neden: {cause}");
-		isRetrying = false; // Düşme nedenine bakmadan önce retry'ı sıfırla
+		isRetrying = false;
 
-		// Eğer neden "Sunucu Dolu" (MaxCcuReached) ise:
 		if (cause == DisconnectCause.MaxCcuReached)
 		{
-			// 1. İsteğiniz: Konsola yazdır
 			Debug.LogError("SUNUCU DOLU! (Maksimum 20 CCU Limitine Ulaşıldı)");
-
-			// if (statusText != null)
-			// 	statusText.text = "Sunucu dolu! Sıraya alınıyor...";
-
-			// 2. İsteğiniz: "Sıra" (Yeniden Deneme) sistemini başlat
 			StartCoroutine(RetryConnectionCoroutine());
 		}
 		else if (cause != DisconnectCause.DisconnectByClientLogic)
 		{
-			// Başka bir beklenmedik hata olduysa (internet kopması vb.)
-			// if (statusText != null)
-			// 	statusText.text = "Bağlantı koptu. Yeniden deneniyor...";
-
 			StartCoroutine(RetryConnectionCoroutine());
 		}
 	}
@@ -214,7 +198,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 		float timer = retryInterval;
 		while (isRetrying && !PhotonNetwork.IsConnected)
 		{
-			// Kullanıcıya kaç saniye kaldığını göster
 			while (timer > 0)
 			{
 				timer -= Time.deltaTime;

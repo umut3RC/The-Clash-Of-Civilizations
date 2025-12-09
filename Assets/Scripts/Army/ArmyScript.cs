@@ -27,17 +27,16 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	[SerializeField]
 	protected int maxHealth = 25;
 	protected int health = 25;
-	public virtual void Start() // <-- virtual eklendi
+	public virtual void Start()
 	{
 		rb = GetComponent<Rigidbody>();
-		// Kulelerde Rigidbody olmayabilir, null kontrolü ekleyelim
 		if (rb != null) rb.useGravity = false;
 
 		animator = GetComponent<Animator>();
 		health = maxHealth;
 	}
 
-	public virtual void FixedUpdate() // <-- virtual eklendi
+	public virtual void FixedUpdate()
 	{
 		if (!photonView.IsMine || !isReady)
 			return;
@@ -113,7 +112,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 		}
 		if (other.transform.root.CompareTag(enemyTag))
 		{
-			// Debug.Log(gameObject.name + " * " + gameObject.tag + " >-> " + other.transform.root.gameObject.name);
 			Transform enemy = other.transform.root;
 			if (!enemiesInRange.Contains(enemy))
 			{
@@ -121,10 +119,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			}
 			UpdateTarget();
 		}
-		// if (other.gameObject.tag != "Ground")
-		// {
-		// 	Debug.Log(gameObject.name + " * " + gameObject.tag + " >-> " + other.transform.root.gameObject.name);
-		// }
 	}
 	private void OnTriggerExit(Collider other)
 	{
@@ -165,8 +159,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			if (gameObject.tag != "Tower")
 				closestEnemy = GetBuildingTarget();
 		}
-
-		//for buildings
 		if (target == null || Vector3.Distance(transform.position, closestEnemy.position) < Vector3.Distance(transform.position, target.position))
 		{
 			target = closestEnemy;
@@ -205,47 +197,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 			gameObject.tag = layerName;
 		Debug.Log("Changing layer-tag: " + layerName);
 	}
-	// Transform GetBuildingTarget()
-	// {
-	// 	Transform _nearestTarget = null;
-	// 	float closestDistance = Mathf.Infinity;
-
-	// 	GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-	// 	foreach (GameObject player in players)
-	// 	{
-	// 		PhotonView pv = player.GetComponent<PhotonView>();
-
-	// 		if (pv != null && !pv.IsMine)
-	// 		{
-	// 			Transform castle = player.transform.Find("Castle");
-	// 			if (castle == null) continue;
-
-	// 			List<Transform> targets = new List<Transform>();
-	// 			targets.Add(castle);
-	// 			foreach (Transform child in castle)
-	// 			{
-	// 				if (child.gameObject.CompareTag("Tower"))
-	// 				{
-	// 					targets.Add(child);
-	// 				}
-	// 			}
-
-	// 			foreach (Transform t in targets)
-	// 			{
-	// 				if (t == null) continue;
-
-	// 				float distance = Vector3.Distance(transform.position, t.position);
-	// 				if (distance < closestDistance)
-	// 				{
-	// 					closestDistance = distance;
-	// 					_nearestTarget = t;
-	// 				}
-	// 			}
-	// 			break;
-	// 		}
-	// 	}
-	// 	return _nearestTarget;
-	// }
 	Transform GetBuildingTarget()
 	{
 		Transform _nearestTarget = null;
@@ -282,7 +233,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	public virtual void TakeDamage(int damage)
 	{
 		health -= damage;
-		// animator.SetTrigger("damage");
 		if (health <= 0)
 		{
 			Die();
@@ -291,16 +241,12 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void RPC_Heal(int amount)
 	{
-		// Canı sadece maksimum cana kadar artır
 		health += amount;
 		health = Mathf.Min(health, maxHealth);
 
-		// (İsteğe bağlı) Eğer bir can barınız (HP Bar) varsa,
-		// onu burada güncelleyebilirsiniz.
-		// UpdateHealthBar(health, maxHealth);
 	}
 
-	public virtual void Die() // <-- virtual eklendi
+	public virtual void Die()
 	{
 		if (photonView.IsMine)
 		{
@@ -321,7 +267,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	{
 		if (canAttack && target != null)
 		{
-			// AnimationTrigger("attack");
 			photonView.RPC("RPC_TriggerAnimation", RpcTarget.All, "attack");
 			if (target.gameObject.CompareTag("Tower"))
 			{
@@ -346,10 +291,8 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 
 					if (enemyPlayerPv != null)
 					{
-						// if (animator != null) animator.SetTrigger("attack");
 						AnimationTrigger("attack");
 						enemyPlayerPv.RPC("RPC_DealDamageToTower", RpcTarget.All, towerId, damage);
-						// Debug.Log(gameObject.name + " -> " + target.gameObject.name);
 						TurnToTarget();
 					}
 				}
@@ -359,7 +302,6 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 				ArmyScript enemy = target.GetComponent<ArmyScript>();
 				if (enemy != null)
 				{
-					// if (animator != null) animator.SetTrigger("attack");
 					AnimationTrigger("attack");
 					enemy.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage);
 					TurnToTarget();
@@ -399,10 +341,9 @@ public class ArmyScript : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void RPC_TriggerAnimation(string triggerName)
 	{
-		// Bu fonksiyon artık hem sende hem rakipte çalışacak
 		if (animator != null)
 		{
-			animator.ResetTrigger(triggerName); // Takılmayı önlemek için
+			animator.ResetTrigger(triggerName);
 			animator.SetTrigger(triggerName);
 		}
 	}

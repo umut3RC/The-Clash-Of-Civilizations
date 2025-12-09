@@ -41,33 +41,6 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			if (found != null) spawnPoint = found.transform;
 		}
 	}
-
-	// void Update()
-	// {
-	// 	// if (!photonView.IsMine)
-	// 	// {
-	// 	// 	return;
-	// 	// }
-	// 	if (isGamePaused)
-	// 	{
-	// 		// Time.timeScale 0 olduğunda Time.deltaTime da 0 olacağı için Unscaled kullan
-	// 		pauseTimer -= Time.unscaledDeltaTime;
-	// 		pauseTimerText.text = pauseTimer.ToString();
-	// 		if (pauseTimer <= 0f)
-	// 		{
-	// 			ResumeGame();
-	// 		}
-	// 	}
-	// }
-
-	// void OnApplicationFocus(bool hasFocus)
-	// {
-	// 	if (!hasFocus && PhotonNetwork.IsConnected && photonView.IsMine && !isGamePaused)
-	// 	{
-	// 		// Odağı kaybetti, herkese bildir
-	// 		photonView.RPC("RPC_PauseGameForAll", RpcTarget.AllBuffered);
-	// 	}
-	// }
 	[PunRPC]
 	void RPC_PauseGameForAll()
 	{
@@ -84,16 +57,11 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 	{
 		isGamePaused = false;
 		Time.timeScale = 1f;
-		// pausePanel.SetActive(true);
 	}
 
 	IEnumerator ReturnToMenu()
 	{
-		// yield return new WaitForSeconds(5f);
-		// "MainMenu" sahnesine veya index 0 olan sahneye dön
-		// SceneManager.LoadScene("MainMenu");
 		PhotonNetwork.LeaveRoom();
-		// Alternatif: SceneManager.LoadScene(0);
 		yield return null;
 	}
 
@@ -105,20 +73,16 @@ public class GameRoomConnectionManager : MonoBehaviourPunCallbacks
 			return;
 		}
 		GameObject playerObj = PhotonNetwork.Instantiate(prefabName, spawnPoint.position, Quaternion.identity);
-
-		// PhotonView üzerinden sahiplik kontrolü yap
 		PhotonView pv = playerObj.GetComponent<PhotonView>();
 
 		if (pv.IsMine)
 		{
 			PlayerScript ps = playerObj.GetComponent<PlayerScript>();
 			ps.enabled = true;
-			ps.SetGameManager(this);
-			// playerObj.GetComponent<PlayerScript>().SetGameManager(this);
+			ps.SetGameManager(this); ;
 		}
 		else
 		{
-			// İstersen diğer oyuncuların PlayerScript'ini tamamen kapat
 			playerObj.GetComponent<PlayerScript>().enabled = false;
 		}
 

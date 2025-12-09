@@ -26,8 +26,6 @@ public class MainMenuManager : MonoBehaviour
 		}
 		else
 		{
-			// ClosePanels();
-			// loadingPanel.SetActive(true);
 			OpenPanel(loadingPanel);
 			PrepareLoadStatus();
 		}
@@ -35,7 +33,6 @@ public class MainMenuManager : MonoBehaviour
 
 	public void PrepareLoadStatus()
 	{
-		// loadingPanel.SetActive(true);
 		loadImage.fillAmount = (3f - loadValue) / 3;
 		loadValue--;
 	}
@@ -48,8 +45,6 @@ public class MainMenuManager : MonoBehaviour
 		}
 		else
 		{
-			// ClosePanels();
-			// userNamePanel.SetActive(true);
 			OpenPanel(userNamePanel);
 		}
 	}
@@ -57,9 +52,6 @@ public class MainMenuManager : MonoBehaviour
 	{
 		if (PhotonNetwork.IsConnected && !string.IsNullOrEmpty(userNameInput.text) && userNameInput.text.Length < 10)
 		{
-			// string rawName = userNameInput.text;
-			// int randomID = Random.Range(1000, 9999);
-			// string uniqueName = rawName + " #" + randomID;
 			PhotonNetwork.NickName = userNameInput.text;
 			EnterMainMenu();
 		}
@@ -67,20 +59,14 @@ public class MainMenuManager : MonoBehaviour
 	public void EnterMainMenu()
 	{
 		OpenPanel(menuPanel);
-		// ClosePanels();
-		// menuPanel.SetActive(true);
 	}
 	public void OpenReConnectPanel()
 	{
 		OpenPanel(reconnectPanel);
-		// ClosePanels();
-		// reconnectPanel.SetActive(true);
 	}
 	public void EnterRoom()
 	{
 		OpenPanel(roomPanel);
-		// ClosePanels();
-		// roomPanel.SetActive(true);
 		lobyManager.UpdatePlayerList();
 	}
 
